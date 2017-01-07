@@ -28,11 +28,11 @@ public class MainActivity extends AppCompatActivity {
 
         new AppVerUpdater(MainActivity.this)
                 .setJSONUrl("http://mypkgt.azurewebsites.net/updateinfo.json")
-                .setDialogTitle("Доступно новое обновление!")
-                .setDialogContent("Обновите мобильное приложение %s до версии %s \nИзменения: \n%s")
-                .setDialogPositiveText("Обновить")
-                .setDialogNegativeText("Позже")
-                .setProgressDialogMessage("Загрузка обновлений...")
+                .setDialogTitle("Availabe a new update!")
+                .setDialogContent("Update %s mobile app to version %s \nFeatures: \n%s")
+                .setDialogPositiveText("Update")
+                .setDialogNegativeText("Later")
+                .setProgressDialogMessage("Download updates...")
                 .build();
 
     }
