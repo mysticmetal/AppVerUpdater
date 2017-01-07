@@ -8,8 +8,6 @@ AppVerUpdater
 
 A library that checks for your apps' updates on your own server. API 14+ required.
 
-Screenshots
------------
 
 <p align="left">
 	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots1.png" width="200px">
