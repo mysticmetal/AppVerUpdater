@@ -9,8 +9,8 @@ AppVerUpdater
 A library that checks for your apps' updates on your own server. API 14+ required.
 
 <p align="left">
-	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots1.png" width="50%">
-	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots2.png" width="50%">
+	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots1.png" width="50%" height="50%">
+	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots2.png" width="50%" height="50%">
 </p>
 
 How to include
