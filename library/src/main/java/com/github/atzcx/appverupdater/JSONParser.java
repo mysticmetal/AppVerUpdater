@@ -9,9 +9,9 @@ import org.json.JSONObject;
 
 public class JSONParser {
 
-    private static final String KEY_LATEST_VERSION = "latestVersion";
-    private static final String KEY_RELEASE_NOTES = "releaseNotes";
-    private static final String KEY_URL = "url";
+    private static final String KEY_LATEST_VERSION = "newVersion";
+    private static final String KEY_RELEASE_NOTES = "versionNotes";
+    private static final String KEY_URL = "apkUrl";
 
     public static UpdateModel parse(JSONObject jsonObject){
 

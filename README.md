@@ -8,9 +8,12 @@ AppVerUpdater
 
 A library that checks for your apps' updates on your own server. API 14+ required.
 
+Screenshots
+---------------
+
 <p align="left">
-	<img src="">
-	<img src="">
+	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots1.png" width="200px">
+	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots2.png" width="200px">
 </p>
 
 How to include
@@ -69,9 +72,9 @@ Example JSON
 
 ```Json
 {
-  "latestVersion": "1.9.5",
-  "url": "https://example.com/example.json",
-  "releaseNotes": [
+  "newVersion": "4.4.0",
+  "apkUrl": "https://example.net/example.apk",
+  "versionNotes": [
     "- Bug fixes"
   ]
 }
