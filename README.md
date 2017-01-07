@@ -3,14 +3,12 @@ AppVerUpdater
 
 <p align="left">
  <a target="_blank" href="https://android-arsenal.com/api?level=14"><img src="https://img.shields.io/badge/API-14+-orange.svg"></a>
- <a target="_blank" href="/"><img src="https://jitpack.io/v/atzcx/AppVerUpdater.svg"></a>
+ <a target="_blank" href="https://github.com/atzcx/AppVerUpdater"><img src="https://jitpack.io/v/atzcx/AppVerUpdater.svg"></a>
  </p>
 
 A library that checks for your apps' updates on your own server. API 14+ required.
 
-Screenshots
----------------
-
+<br>
 <p align="left">
 	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots1.png" width="200px">
 	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots2.png" width="200px">
