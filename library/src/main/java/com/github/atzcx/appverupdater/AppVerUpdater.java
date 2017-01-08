@@ -10,7 +10,6 @@ import android.util.Log;
 import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
 import com.github.atzcx.appverupdater.interfaces.ResponseListener;
 import com.github.atzcx.appverupdater.models.UpdateModel;
-import com.github.atzcx.appverupdater.utils.UtilsAsyncTask;
 import com.github.atzcx.appverupdater.utils.UtilsDialog;
 import com.github.atzcx.appverupdater.utils.UtilsUpdater;
 
@@ -18,72 +17,85 @@ public class AppVerUpdater {
 
     private Context context;
     private String url;
-    private UtilsAsyncTask.JSONAsyncTask jsonAsyncTask;
-
+    private AsyncRequest.JSONAsyncTask jsonAsyncTask;
     private CharSequence title;
     private CharSequence content;
+    private CharSequence contentNotes;
     private CharSequence positiveText;
     private CharSequence negativeText;
     private CharSequence message;
+    private boolean viewNotes = false;
 
     private AlertDialog alertDialog;
 
     public AppVerUpdater(@NonNull Context context) {
         this.context = context;
+
+        this.title = this.context.getResources().getString(R.string.appverupdate_dialog_title);
+        this.content = this.context.getResources().getString(R.string.appverupdater_dialog_content);
+        this.contentNotes = this.context.getResources().getString(R.string.appverupdater_dialog_content_notes);
+        this.positiveText = this.context.getResources().getString(R.string.appverupdater_dialog_positivetext);
+        this.negativeText = this.context.getResources().getString(R.string.appverupdater_dialog_negativetext);
+        this.message = this.context.getResources().getString(R.string.appver_updater_progressdialog_message);
     }
 
-    public AppVerUpdater setJSONUrl(@NonNull String url){
+    public AppVerUpdater setUpdateJSONUrl(@NonNull String url){
         this.url = url;
         return this;
     }
 
-    public AppVerUpdater setDialogTitle(@StringRes int titleRes) {
-        setDialogTitle(this.context.getText(titleRes));
+    public AppVerUpdater setAlertDialogTitle(@StringRes int titleRes) {
+        setAlertDialogTitle(this.context.getText(titleRes));
         return this;
     }
 
-    public AppVerUpdater setDialogTitle(CharSequence title) {
+    public AppVerUpdater setAlertDialogTitle(@NonNull CharSequence title) {
         this.title = title;
         return this;
     }
 
-    public AppVerUpdater setDialogContent(@StringRes int contentRes) {
-        setDialogContent(this.context.getText(contentRes));
+    public AppVerUpdater setAlertDialogContent(@StringRes int contentRes) {
+        setAlertDialogContent(this.context.getText(contentRes));
         return this;
     }
 
-    public AppVerUpdater setDialogContent(@NonNull CharSequence content) {
+    public AppVerUpdater setAlertDialogContent(@NonNull CharSequence content) {
         this.content = content;
         return this;
     }
 
-    public AppVerUpdater setDialogPositiveText(@StringRes int positiveTextRes) {
-        setDialogPositiveText(this.context.getText(positiveTextRes));
+    public AppVerUpdater setAlertDialogPositiveText(@StringRes int positiveTextRes) {
+        setAlertDialogPositiveText(this.context.getText(positiveTextRes));
         return this;
     }
 
-    public AppVerUpdater setDialogPositiveText(@NonNull CharSequence positiveText) {
+    public AppVerUpdater setAlertDialogPositiveText(@NonNull CharSequence positiveText) {
         this.positiveText = positiveText;
         return this;
     }
 
-    public AppVerUpdater setDialogNegativeText(@StringRes int negativeTextRes) {
-        setDialogNegativeText(this.context.getText(negativeTextRes));
+    public AppVerUpdater setAlertDialogNegativeText(@StringRes int negativeTextRes) {
+        setAlertDialogNegativeText(this.context.getText(negativeTextRes));
         return this;
     }
 
-    public AppVerUpdater setDialogNegativeText(@NonNull CharSequence negativeText) {
+    public AppVerUpdater setAlertDialogNegativeText(@NonNull CharSequence negativeText) {
         this.negativeText = negativeText;
         return this;
     }
 
     public AppVerUpdater setProgressDialogMessage(@StringRes int messageRes) {
-        setDialogNegativeText(this.context.getText(messageRes));
+        setProgressDialogMessage(this.context.getText(messageRes));
         return this;
     }
 
     public AppVerUpdater setProgressDialogMessage(@NonNull CharSequence message) {
         this.message = message;
+        return this;
+    }
+
+    public AppVerUpdater setViewNotes(boolean viewNotes){
+        this.viewNotes = viewNotes;
         return this;
     }
 
@@ -94,7 +106,7 @@ public class AppVerUpdater {
 
     private void update(){
 
-        jsonAsyncTask = new UtilsAsyncTask.JSONAsyncTask(context, url, new ResponseListener() {
+        jsonAsyncTask = new AsyncRequest.JSONAsyncTask(context, url, new ResponseListener() {
             @Override
             public void onSuccess(UpdateModel update) {
 
@@ -119,13 +131,26 @@ public class AppVerUpdater {
 
     }
 
+    public void stop(){
+        if (jsonAsyncTask != null && !jsonAsyncTask.isCancelled()) {
+            jsonAsyncTask.cancel(true);
+        }
+    }
+
+    public void dismiss() {
+        if (alertDialog != null && alertDialog.isShowing()) {
+            alertDialog.dismiss();
+        }
+    }
 
     private CharSequence formatContent(Context context, UpdateModel update){
 
-        if (content != null){
+        if (content != null && contentNotes != null){
 
-            if (update.getNotes() != null && !TextUtils.isEmpty(update.getNotes())){
-                return String.format(String.valueOf(content), UtilsUpdater.appName(context), update.getVersion(), update.getNotes());
+            if (this.viewNotes){
+                if (update.getNotes() != null && !TextUtils.isEmpty(update.getNotes())){
+                    return String.format(String.valueOf(contentNotes), UtilsUpdater.appName(context), update.getVersion(), update.getNotes());
+                }
             } else {
                 return String.format(String.valueOf(content), UtilsUpdater.appName(context), update.getVersion());
             }

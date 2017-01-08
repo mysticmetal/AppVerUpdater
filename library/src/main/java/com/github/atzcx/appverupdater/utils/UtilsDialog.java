@@ -6,7 +6,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
-import com.github.atzcx.appverupdater.DownloadFileFromURL;
+import com.github.atzcx.appverupdater.AsyncDownload;
 
 public class UtilsDialog {
 
@@ -18,7 +18,7 @@ public class UtilsDialog {
                 .setPositiveButton(btnPositive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        DownloadFileFromURL download = new DownloadFileFromURL(context, message);
+                        AsyncDownload download = new AsyncDownload(context, message);
                         download.execute(url);
                     }
                 })

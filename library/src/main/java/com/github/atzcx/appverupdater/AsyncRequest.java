@@ -1,4 +1,4 @@
-package com.github.atzcx.appverupdater.utils;
+package com.github.atzcx.appverupdater;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -9,6 +9,7 @@ import com.github.atzcx.appverupdater.JSONParser;
 import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
 import com.github.atzcx.appverupdater.interfaces.ResponseListener;
 import com.github.atzcx.appverupdater.models.UpdateModel;
+import com.github.atzcx.appverupdater.utils.UtilsUpdater;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,7 +20,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class UtilsAsyncTask {
+public class AsyncRequest {
 
     public static class JSONAsyncTask extends AsyncTask<Void, Void, UpdateModel> {
 

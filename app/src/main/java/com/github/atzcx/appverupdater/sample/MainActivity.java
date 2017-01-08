@@ -46,12 +46,8 @@ public class MainActivity extends AppCompatActivity {
     private void update(){
 
         new AppVerUpdater(MainActivity.this)
-                .setJSONUrl("http://mypkgt.azurewebsites.net/updateinfo.json")
-                .setDialogTitle("Availabe a new update!")
-                .setDialogContent("Update %s mobile app to version %s \nFeatures: \n%s")
-                .setDialogPositiveText("Update")
-                .setDialogNegativeText("Later")
-                .setProgressDialogMessage("Download updates...")
+                .setUpdateJSONUrl("http://mypkgt.azurewebsites.net/updateinfo.json")
+                .setViewNotes(false)
                 .build();
 
     }
