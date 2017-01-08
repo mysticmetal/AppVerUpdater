@@ -6,12 +6,9 @@ AppVerUpdater
  <a target="_blank" href="https://github.com/atzcx/AppVerUpdater"><img src="https://jitpack.io/v/atzcx/AppVerUpdater.svg"></a>
  </p>
 
-A library that checks for your apps' updates on your own server. API 14+ required.
 
-
-<p align="left">
-	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots1.png" width="200px">
-	<img src="https://github.com/atzcx/AppVerUpdater/blob/master/Screenshots/screenshots2.png" width="200px">
+<p align="center">
+<img src="https://github.com/atzcx/AppVerUpdater/blob/master/screenshots/banner.png" >
 </p>
 
 How to include
