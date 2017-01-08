@@ -8,7 +8,7 @@ AppVerUpdater
 
 
 <p align="center">
-<img src="https://github.com/atzcx/AppVerUpdater/blob/master/screenshots/banner.png" >
+<img src="https://github.com/atzcx/AppVerUpdater/blob/master/screenshots/screenshot.png" >
 </p>
 
 How to include
