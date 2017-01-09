@@ -42,7 +42,7 @@ Usage
 --------
 
 Add permissions to your app's Manifest:
-```JavaScript
+```xml
 <uses-permission android:name="android.permission.INTERNET"/>
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -75,7 +75,7 @@ Example JSON
 String Resourses
 ---------------------
 
-```Txt
+```xml
 <string name="appverupdate_dialog_title">Available a new update!</string>
 <string name="appverupdater_dialog_content">Update %1$s mobile app to version %2$s</string>
 <string name="appverupdater_dialog_content_notes">Update %1$s mobile app to version %2$s \nFeatures: \n%3$s</string>
