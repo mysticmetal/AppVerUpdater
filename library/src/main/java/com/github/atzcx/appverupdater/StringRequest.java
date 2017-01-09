@@ -16,13 +16,16 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
-public class AsyncRequest {
+public class StringRequest {
 
-    public static class JSONAsyncTask extends AsyncTask<Void, Void, UpdateModel> {
+    public static class newCall extends AsyncTask<Void, Void, UpdateModel> {
 
         private Context context;
         private String url;
@@ -31,7 +34,7 @@ public class AsyncRequest {
         private Response response = null;
         private Request request;
 
-        public JSONAsyncTask(Context context, String url, ResponseListener listener){
+        public newCall(Context context, String url, ResponseListener listener) {
             this.context = context;
             this.url = url;
             this.listener = listener;
@@ -42,10 +45,10 @@ public class AsyncRequest {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            if (listener == null || context == null || client == null){
+            if (listener == null || context == null || client == null) {
                 cancel(true);
-            } else if (UtilsUpdater.isNetworkAvailable(context)){
-                if (url == null){
+            } else if (UtilsUpdater.isNetworkAvailable(context)) {
+                if (url == null) {
                     listener.onFailure(AppVerUpdaterError.URL_IS_EMPTY);
                     cancel(true);
                 }
@@ -63,13 +66,14 @@ public class AsyncRequest {
                     .url(this.url)
                     .build();
 
+
             try {
                 response = client.newCall(request).execute();
             } catch (IOException e) {
                 Log.v(Constans.TAG, e.getMessage());
             }
 
-            if (response.code() != 404){
+            if (response.isSuccessful()){
 
                 if (response != null){
                     try {
@@ -88,7 +92,11 @@ public class AsyncRequest {
                 }
 
             } else {
-                listener.onFailure(AppVerUpdaterError.NOT_JSON_FILE_TO_SERVER);
+
+                if (response.code() == 404){
+                    listener.onFailure(AppVerUpdaterError.NOT_JSON_FILE_TO_SERVER);
+                }
+
             }
 
             return null;
@@ -98,7 +106,7 @@ public class AsyncRequest {
         protected void onPostExecute(UpdateModel updateModel) {
             super.onPostExecute(updateModel);
 
-            if (listener != null){
+            if (listener != null) {
                 listener.onSuccess(updateModel);
             }
         }

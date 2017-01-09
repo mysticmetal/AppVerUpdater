@@ -17,7 +17,7 @@ public class AppVerUpdater {
 
     private Context context;
     private String url;
-    private AsyncRequest.JSONAsyncTask jsonAsyncTask;
+    private StringRequest.newCall stringRequest;
     private CharSequence title;
     private CharSequence content;
     private CharSequence contentNotes;
@@ -39,7 +39,7 @@ public class AppVerUpdater {
         this.message = this.context.getResources().getString(R.string.appver_updater_progressdialog_message);
     }
 
-    public AppVerUpdater setUpdateJSONUrl(@NonNull String url){
+    public AppVerUpdater setUpdateJSONUrl(@NonNull String url) {
         this.url = url;
         return this;
     }
@@ -94,30 +94,32 @@ public class AppVerUpdater {
         return this;
     }
 
-    public AppVerUpdater setViewNotes(boolean viewNotes){
+    public AppVerUpdater setViewNotes(boolean viewNotes) {
         this.viewNotes = viewNotes;
         return this;
     }
 
-    public AppVerUpdater build(){
+    public AppVerUpdater build() {
         update();
         return this;
     }
 
-    private void update(){
+    private void update() {
 
-        jsonAsyncTask = new AsyncRequest.JSONAsyncTask(context, url, new ResponseListener() {
+        stringRequest = new StringRequest.newCall(context, url, new ResponseListener() {
             @Override
             public void onSuccess(UpdateModel update) {
 
+
                 Log.v(Constans.TAG, "Update: " + update);
 
-                if (UtilsUpdater.isUpdateAvailable(UtilsUpdater.appVersion(context), update.getVersion())){
+                if (UtilsUpdater.isUpdateAvailable(UtilsUpdater.appVersion(context), update.getVersion())) {
 
                     alertDialog = UtilsDialog.showUpdateAvailableDialog(context, title, formatContent(context, update), negativeText, positiveText, message, update.getUrl());
                     alertDialog.show();
 
                 }
+
 
             }
 
@@ -127,13 +129,13 @@ public class AppVerUpdater {
             }
         });
 
-        jsonAsyncTask.execute();
+        stringRequest.execute();
 
     }
 
-    public void stop(){
-        if (jsonAsyncTask != null && !jsonAsyncTask.isCancelled()) {
-            jsonAsyncTask.cancel(true);
+    public void stop() {
+        if (stringRequest != null && !stringRequest.isCancelled()) {
+            stringRequest.cancel(true);
         }
     }
 
@@ -143,12 +145,12 @@ public class AppVerUpdater {
         }
     }
 
-    private CharSequence formatContent(Context context, UpdateModel update){
+    private CharSequence formatContent(Context context, UpdateModel update) {
 
-        if (content != null && contentNotes != null){
+        if (content != null && contentNotes != null) {
 
-            if (this.viewNotes){
-                if (update.getNotes() != null && !TextUtils.isEmpty(update.getNotes())){
+            if (this.viewNotes) {
+                if (update.getNotes() != null && !TextUtils.isEmpty(update.getNotes())) {
                     return String.format(String.valueOf(contentNotes), UtilsUpdater.appName(context), update.getVersion(), update.getNotes());
                 }
             } else {

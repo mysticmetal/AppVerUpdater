@@ -3,7 +3,8 @@ AppVerUpdater
 
 <p align="left">
  <a target="_blank" href="https://android-arsenal.com/api?level=14"><img src="https://img.shields.io/badge/API-14+-orange.svg"></a>
- <a target="_blank" href="https://github.com/atzcx/AppVerUpdater"><img src="https://jitpack.io/v/atzcx/AppVerUpdater.svg"></a>
+ <a href="https://github.com/atzcx/AppVerUpdater"><img src="https://jitpack.io/v/atzcx/AppVerUpdater.svg"></a>
+ <a target="_blank" href="https://android-arsenal.com/details/1/5050"><img src="https://img.shields.io/badge/Android%20Arsenal-AppVerUpdater-blue.svg"></a>
  </p>
 
 
@@ -27,14 +28,14 @@ Maven:
 <dependency>
 	<groupId>com.github.atzcx</groupId>
 	<artifactId>AppVerUpdater</artifactId>
-	<version>1.0</version>
+	<version>1.0.0</version>
 </dependency>
 ```
 
 
 or Gradle:
 ```JavaScript
-compile 'com.github.atzcx:AppVerUpdater:1.0'
+compile 'com.github.atzcx:AppVerUpdater:1.0.0'
 ```
 
 Usage
@@ -52,13 +53,9 @@ Basic Usage
 Activity and Fragment
 
 ```Java
-new AppVerUpdater(MainActivity.this)
-	.setJSONUrl("http://example.com/update.json")
-	.setDialogTitle("Availabe a new update!")
-	.setDialogContent("Update %s mobile app to version %s \nFeatures: \n%s")
-	.setDialogPositiveText("Update")
-	.setDialogNegativeText("Later")
-	.setProgressDialogMessage("Download updates...")
+new AppVerUpdater(this)
+	.setUpdateJSONUrl("http://example.com/update.json")
+	.setViewNotes(true)
 	.build();
 ```
 
@@ -73,6 +70,18 @@ Example JSON
     "- Bug fixes"
   ]
 }
+```
+
+String Resourses
+---------------------
+
+```Txt
+<string name="appverupdate_dialog_title">Available a new update!</string>
+<string name="appverupdater_dialog_content">Update %1$s mobile app to version %2$s</string>
+<string name="appverupdater_dialog_content_notes">Update %1$s mobile app to version %2$s \nFeatures: \n%3$s</string>
+<string name="appverupdater_dialog_positivetext">Update</string>
+<string name="appverupdater_dialog_negativetext">Later</string>
+<string name="appver_updater_progressdialog_message">Download</string>
 ```
 
 License
