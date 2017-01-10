@@ -24,18 +24,18 @@ repositories {
 }
 ```
 Maven:
-```JavaScript
+```xml
 <dependency>
 	<groupId>com.github.atzcx</groupId>
 	<artifactId>AppVerUpdater</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 </dependency>
 ```
 
 
 or Gradle:
 ```JavaScript
-compile 'com.github.atzcx:AppVerUpdater:1.0.0'
+compile 'com.github.atzcx:AppVerUpdater:1.0.1'
 ```
 
 Usage
@@ -55,6 +55,7 @@ Activity and Fragment
 ```Java
 new AppVerUpdater(this)
 	.setUpdateJSONUrl("http://example.com/update.json")
+	.setShowNotUpdated(true)
 	.setViewNotes(true)
 	.build();
 ```
@@ -76,12 +77,19 @@ String Resourses
 ---------------------
 
 ```xml
-<string name="appverupdate_dialog_title">Available a new update!</string>
-<string name="appverupdater_dialog_content">Update %1$s mobile app to version %2$s</string>
-<string name="appverupdater_dialog_content_notes">Update %1$s mobile app to version %2$s \nFeatures: \n%3$s</string>
-<string name="appverupdater_dialog_positivetext">Update</string>
-<string name="appverupdater_dialog_negativetext">Later</string>
-<string name="appver_updater_progressdialog_message">Download</string>
+<!-- AlertDialog Update Available -->
+<string name="appverupdate_update_available">Available a new update!</string>
+<string name="appverupdater_content_update_available">Update %1$s mobile app to version %2$s</string>
+<string name="appverupdater_notes_update_available">Update %1$s mobile app to version %2$s \nFeatures: \n%3$s</string>
+<string name="appverupdater_positivetext_update_available">Update</string>
+<string name="appverupdater_negativetext_update_available">Later</string>
+<!-- AlertDialog Not Update Available -->
+<string name="appverupdate_not_update_available">No updates available!</string>
+<string name="appverupdater_content_not_update_available">You have the latest version of the application</string>
+<!-- ProgressDialog Update Available -->
+<string name="appverupdater_progressdialog_message_update_available">Download</string>
+<!-- AlertDialog Denied Permissin -->
+<string name="appverupdater_denied_message">If you reject permission,you can not use this service</string>
 ```
 
 License

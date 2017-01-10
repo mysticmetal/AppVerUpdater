@@ -6,8 +6,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
-import com.github.atzcx.appverupdater.AsyncDownload;
-
 public class UtilsDialog {
 
     public static AlertDialog showUpdateAvailableDialog(final Context context, CharSequence title, final CharSequence content, CharSequence btnNegative, CharSequence btnPositive, final CharSequence message, final String url) {
@@ -18,8 +16,7 @@ public class UtilsDialog {
                 .setPositiveButton(btnPositive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        AsyncDownload download = new AsyncDownload(context, message);
-                        download.execute(url);
+                        UtilsUpdater.downloadFile(context, url, message);
                     }
                 })
                 .setNegativeButton(btnNegative, new DialogInterface.OnClickListener() {
@@ -30,6 +27,18 @@ public class UtilsDialog {
                 }).create();
     }
 
+    public static AlertDialog showUpdateNotAvailableDialog(final Context context, CharSequence title, final CharSequence content) {
+
+        return new AlertDialog.Builder(context)
+                .setTitle(title)
+                .setMessage(content)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                }).create();
+    }
 
     public static ProgressDialog showDownloadProgressDialog(Context context, CharSequence message){
 

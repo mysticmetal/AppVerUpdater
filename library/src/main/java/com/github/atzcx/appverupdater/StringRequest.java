@@ -4,10 +4,8 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.github.atzcx.appverupdater.Constans;
-import com.github.atzcx.appverupdater.JSONParser;
 import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
-import com.github.atzcx.appverupdater.interfaces.ResponseListener;
+import com.github.atzcx.appverupdater.interfaces.RequestListener;
 import com.github.atzcx.appverupdater.models.UpdateModel;
 import com.github.atzcx.appverupdater.utils.UtilsUpdater;
 
@@ -16,12 +14,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 public class StringRequest {
 
@@ -29,12 +24,12 @@ public class StringRequest {
 
         private Context context;
         private String url;
-        private ResponseListener listener;
+        private RequestListener listener;
         private OkHttpClient client;
-        private Response response = null;
+        private Response response;
         private Request request;
 
-        public newCall(Context context, String url, ResponseListener listener) {
+        public newCall(Context context, String url, RequestListener listener) {
             this.context = context;
             this.url = url;
             this.listener = listener;

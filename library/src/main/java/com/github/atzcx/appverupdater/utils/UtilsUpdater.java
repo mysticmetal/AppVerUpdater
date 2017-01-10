@@ -1,14 +1,21 @@
 package com.github.atzcx.appverupdater.utils;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.github.atzcx.appverupdater.Constans;
+import com.github.atzcx.appverupdater.DownloadRequest;
+import com.github.atzcx.appverupdater.interfaces.DownloadListener;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -18,6 +25,10 @@ public class UtilsUpdater {
 
     public static String appName(Context context){
         return context.getString(context.getApplicationInfo().labelRes);
+    }
+
+    public static String appPackageName(Context context){
+        return context.getApplicationContext().getPackageName();
     }
 
     public static String currentDate(){
@@ -48,12 +59,41 @@ public class UtilsUpdater {
         return res;
     }
 
-    public static void toUpdateApk(Context context, String filePath){
+    public static void downloadFile(final Context context, String url, CharSequence message){
+        DownloadRequest.newCall downloadRequest = new DownloadRequest.newCall(context, url, message, "update-" + currentDate() + ".apk", new DownloadListener() {
+            @Override
+            public void onSuccess(File file) {
+
+                Log.v(Constans.TAG, "File: " + file);
+
+                installApkAsFile(context, file);
+
+                //Log.v(Constans.TAG, "Uri: " + Uri.fromFile(file));
+
+            }
+        });
+
+        downloadRequest.execute();
+    }
+
+    public static void installApkAsFile(Context context, File filePath){
         if (filePath != null){
-            Uri uri = Uri.fromFile(new File(filePath));
+
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(uri, "application/vnd.android.package-archive");
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+
+                intent = UtilsNougat.formatFileProviderIntent(context, filePath, intent, "application/vnd.android.package-archive");
+
+            } else {
+
+                intent.setDataAndType(Uri.fromFile(filePath), "application/vnd.android.package-archive");
+
+            }
+
+
             context.startActivity(intent);
+
         } else {
             Log.v(Constans.TAG, "apk update not found");
         }
@@ -83,6 +123,20 @@ public class UtilsUpdater {
         }
 
         return Integer.signum(vals1.length - vals2.length);
+    }
+
+    public static boolean isStoragePermissionGranted(Context context) {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (context.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                return true;
+            } else {
+                ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                return false;
+            }
+        }
+        else {
+            return true;
+        }
     }
 
 }

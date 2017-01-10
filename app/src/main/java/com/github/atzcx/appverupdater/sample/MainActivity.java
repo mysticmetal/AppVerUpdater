@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
         new AppVerUpdater(MainActivity.this)
                 .setUpdateJSONUrl("http://mypkgt.azurewebsites.net/updateinfo.json")
+                .setShowNotUpdated(true)
                 .setViewNotes(false)
                 .build();
 

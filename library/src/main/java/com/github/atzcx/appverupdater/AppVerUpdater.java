@@ -1,42 +1,61 @@
 package com.github.atzcx.appverupdater;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
-import com.github.atzcx.appverupdater.interfaces.ResponseListener;
+import com.github.atzcx.appverupdater.interfaces.RequestListener;
 import com.github.atzcx.appverupdater.models.UpdateModel;
 import com.github.atzcx.appverupdater.utils.UtilsDialog;
 import com.github.atzcx.appverupdater.utils.UtilsUpdater;
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
+
+import java.util.ArrayList;
 
 public class AppVerUpdater {
 
     private Context context;
     private String url;
     private StringRequest.newCall stringRequest;
-    private CharSequence title;
-    private CharSequence content;
-    private CharSequence contentNotes;
-    private CharSequence positiveText;
-    private CharSequence negativeText;
+
+    private CharSequence title_available;
+    private CharSequence content_available;
+    private CharSequence contentNotes_available;
+    private CharSequence positiveText_available;
+    private CharSequence negativeText_available;
+    private CharSequence title_not_available;
+    private CharSequence content_not_available;
     private CharSequence message;
+    private CharSequence denied_message;
+
     private boolean viewNotes = false;
+    private boolean showNotUpdate = false;
 
     private AlertDialog alertDialog;
 
     public AppVerUpdater(@NonNull Context context) {
         this.context = context;
 
-        this.title = this.context.getResources().getString(R.string.appverupdate_dialog_title);
-        this.content = this.context.getResources().getString(R.string.appverupdater_dialog_content);
-        this.contentNotes = this.context.getResources().getString(R.string.appverupdater_dialog_content_notes);
-        this.positiveText = this.context.getResources().getString(R.string.appverupdater_dialog_positivetext);
-        this.negativeText = this.context.getResources().getString(R.string.appverupdater_dialog_negativetext);
-        this.message = this.context.getResources().getString(R.string.appver_updater_progressdialog_message);
+        this.title_available = this.context.getResources().getString(R.string.appverupdate_update_available);
+        this.content_available = this.context.getResources().getString(R.string.appverupdater_content_update_available);
+        this.contentNotes_available = this.context.getResources().getString(R.string.appverupdater_notes_update_available);
+        this.positiveText_available = this.context.getResources().getString(R.string.appverupdater_positivetext_update_available);
+        this.negativeText_available = this.context.getResources().getString(R.string.appverupdater_negativetext_update_available);
+        this.title_not_available = this.context.getResources().getString(R.string.appverupdate_not_update_available);
+        this.content_not_available = this.context.getResources().getString(R.string.appverupdater_content_not_update_available);
+        this.message = this.context.getResources().getString(R.string.appverupdater_progressdialog_message_update_available);
+        this.denied_message = context.getResources().getString(R.string.appverupdater_denied_message);
     }
 
     public AppVerUpdater setUpdateJSONUrl(@NonNull String url) {
@@ -44,53 +63,88 @@ public class AppVerUpdater {
         return this;
     }
 
-    public AppVerUpdater setAlertDialogTitle(@StringRes int titleRes) {
-        setAlertDialogTitle(this.context.getText(titleRes));
+    public AppVerUpdater setShowNotUpdated(boolean showNotUpdate) {
+        this.showNotUpdate = showNotUpdate;
         return this;
     }
 
-    public AppVerUpdater setAlertDialogTitle(@NonNull CharSequence title) {
-        this.title = title;
+    public AppVerUpdater setAlertDialogUpdateAvailableTitle(@StringRes int titleRes) {
+        setAlertDialogUpdateAvailableTitle(this.context.getText(titleRes));
         return this;
     }
 
-    public AppVerUpdater setAlertDialogContent(@StringRes int contentRes) {
-        setAlertDialogContent(this.context.getText(contentRes));
+    public AppVerUpdater setAlertDialogUpdateAvailableTitle(@NonNull CharSequence title) {
+        this.title_available = title;
         return this;
     }
 
-    public AppVerUpdater setAlertDialogContent(@NonNull CharSequence content) {
-        this.content = content;
+    public AppVerUpdater setAlertDialogUpdateAvailableContent(@StringRes int contentRes) {
+        setAlertDialogUpdateAvailableContent(this.context.getText(contentRes));
         return this;
     }
 
-    public AppVerUpdater setAlertDialogPositiveText(@StringRes int positiveTextRes) {
-        setAlertDialogPositiveText(this.context.getText(positiveTextRes));
+    public AppVerUpdater setAlertDialogUpdateAvailableContent(@NonNull CharSequence content) {
+        this.content_available = content;
         return this;
     }
 
-    public AppVerUpdater setAlertDialogPositiveText(@NonNull CharSequence positiveText) {
-        this.positiveText = positiveText;
+    public AppVerUpdater setAlertDialogUpdateAvailablePositiveText(@StringRes int positiveTextRes) {
+        setAlertDialogUpdateAvailablePositiveText(this.context.getText(positiveTextRes));
         return this;
     }
 
-    public AppVerUpdater setAlertDialogNegativeText(@StringRes int negativeTextRes) {
-        setAlertDialogNegativeText(this.context.getText(negativeTextRes));
+    public AppVerUpdater setAlertDialogUpdateAvailablePositiveText(@NonNull CharSequence positiveText) {
+        this.positiveText_available = positiveText;
         return this;
     }
 
-    public AppVerUpdater setAlertDialogNegativeText(@NonNull CharSequence negativeText) {
-        this.negativeText = negativeText;
+    public AppVerUpdater setAlertDialogUpdateAvailableNegativeText(@StringRes int negativeTextRes) {
+        setAlertDialogUpdateAvailableNegativeText(this.context.getText(negativeTextRes));
         return this;
     }
 
-    public AppVerUpdater setProgressDialogMessage(@StringRes int messageRes) {
-        setProgressDialogMessage(this.context.getText(messageRes));
+    public AppVerUpdater setAlertDialogUpdateAvailableNegativeText(@NonNull CharSequence negativeText) {
+        this.negativeText_available = negativeText;
         return this;
     }
 
-    public AppVerUpdater setProgressDialogMessage(@NonNull CharSequence message) {
+    public AppVerUpdater setProgressDialogUpdateAvailableMessage(@StringRes int messageRes) {
+        setProgressDialogUpdateAvailableMessage(this.context.getText(messageRes));
+        return this;
+    }
+
+    public AppVerUpdater setProgressDialogUpdateAvailableMessage(@NonNull CharSequence message) {
         this.message = message;
+        return this;
+    }
+
+    public AppVerUpdater setAlertDialogNotUpdateAvailableTitle(@StringRes int titleRes) {
+        setAlertDialogNotUpdateAvailableTitle(this.context.getText(titleRes));
+        return this;
+    }
+
+    public AppVerUpdater setAlertDialogNotUpdateAvailableTitle(@NonNull CharSequence title) {
+        this.title_not_available = title;
+        return this;
+    }
+
+    public AppVerUpdater setAlertDialogNotUpdateAvailableContent(@StringRes int contentRes) {
+        setAlertDialogNotUpdateAvailableContent(this.context.getText(contentRes));
+        return this;
+    }
+
+    public AppVerUpdater setAlertDialogNotUpdateAvailableContent(@NonNull CharSequence content) {
+        this.content_not_available = content;
+        return this;
+    }
+
+    public AppVerUpdater setAlertDialogDeniedMessage(@StringRes int denied_messageRes) {
+        setAlertDialogDeniedMessage(this.context.getText(denied_messageRes));
+        return this;
+    }
+
+    public AppVerUpdater setAlertDialogDeniedMessage(@NonNull CharSequence denied_message) {
+        this.denied_message = denied_message;
         return this;
     }
 
@@ -100,26 +154,57 @@ public class AppVerUpdater {
     }
 
     public AppVerUpdater build() {
-        update();
+        start();
         return this;
     }
 
+    private void start(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            new TedPermission(context)
+                    .setPermissionListener(permissionListener)
+                    .setDeniedMessage(String.valueOf(denied_message))
+                    .setDeniedCloseButtonText(android.R.string.ok)
+                    .setGotoSettingButton(false)
+                    .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    .check();
+        } else {
+            update();
+        }
+    }
+
+    private PermissionListener permissionListener = new PermissionListener() {
+        @Override
+        public void onPermissionGranted() {
+            update();
+        }
+
+        @Override
+        public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+            for (String s : deniedPermissions){
+                Log.v(Constans.TAG, "Permission Denied: " + s);
+            }
+        }
+    };
+
     private void update() {
 
-        stringRequest = new StringRequest.newCall(context, url, new ResponseListener() {
+        stringRequest = new StringRequest.newCall(context, url, new RequestListener() {
             @Override
             public void onSuccess(UpdateModel update) {
-
 
                 Log.v(Constans.TAG, "Update: " + update);
 
                 if (UtilsUpdater.isUpdateAvailable(UtilsUpdater.appVersion(context), update.getVersion())) {
 
-                    alertDialog = UtilsDialog.showUpdateAvailableDialog(context, title, formatContent(context, update), negativeText, positiveText, message, update.getUrl());
+                    alertDialog = UtilsDialog.showUpdateAvailableDialog(context, title_available, formatContent(context, update), negativeText_available, positiveText_available, message, update.getUrl());
+                    alertDialog.show();
+
+                } else if (showNotUpdate) {
+
+                    alertDialog = UtilsDialog.showUpdateNotAvailableDialog(context, title_not_available, content_not_available);
                     alertDialog.show();
 
                 }
-
 
             }
 
@@ -147,19 +232,25 @@ public class AppVerUpdater {
 
     private CharSequence formatContent(Context context, UpdateModel update) {
 
-        if (content != null && contentNotes != null) {
+        try {
 
-            if (this.viewNotes) {
-                if (update.getNotes() != null && !TextUtils.isEmpty(update.getNotes())) {
-                    return String.format(String.valueOf(contentNotes), UtilsUpdater.appName(context), update.getVersion(), update.getNotes());
+            if (content_available != null && contentNotes_available != null) {
+
+                if (this.viewNotes) {
+                    if (update.getNotes() != null && !TextUtils.isEmpty(update.getNotes())) {
+                        return String.format(String.valueOf(contentNotes_available), UtilsUpdater.appName(context), update.getVersion(), update.getNotes());
+                    }
+                } else {
+                    return String.format(String.valueOf(content_available), UtilsUpdater.appName(context), update.getVersion());
                 }
-            } else {
-                return String.format(String.valueOf(content), UtilsUpdater.appName(context), update.getVersion());
+
             }
 
+        } catch (Exception e) {
+            Log.v(Constans.TAG, "formatContent: " + e.getMessage());
         }
 
-        return content;
+        return content_available;
     }
 
 }
