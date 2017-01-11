@@ -7,6 +7,7 @@ AppVerUpdater
  <a target="_blank" href="https://android-arsenal.com/details/1/5050"><img src="https://img.shields.io/badge/Android%20Arsenal-AppVerUpdater-blue.svg"></a>
  </p>
 
+A library that checks for your apps' updates on your own server. If you want to publish your app in Google Play it is best not to use the library. Google Play prohibits self-renewal. API 14+ required.
 
 <p align="center">
 <img src="https://github.com/atzcx/AppVerUpdater/blob/master/screenshots/screenshot.png" >
