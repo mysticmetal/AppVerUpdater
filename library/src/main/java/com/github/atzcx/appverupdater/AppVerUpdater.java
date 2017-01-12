@@ -159,7 +159,7 @@ public class AppVerUpdater {
     }
 
     private void start(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+        if (Build.VERSION.SDK_INT >= 23){
             new TedPermission(context)
                     .setPermissionListener(permissionListener)
                     .setDeniedMessage(String.valueOf(denied_message))
