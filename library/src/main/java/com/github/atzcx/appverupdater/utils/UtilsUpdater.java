@@ -81,7 +81,7 @@ public class UtilsUpdater {
 
             Intent intent = new Intent(Intent.ACTION_VIEW);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            if (Build.VERSION.SDK_INT >= 24){
 
                 intent = UtilsNougat.formatFileProviderIntent(context, filePath, intent, "application/vnd.android.package-archive");
 

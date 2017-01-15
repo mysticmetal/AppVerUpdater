@@ -10,7 +10,7 @@ AppVerUpdater
 A library that checks for your apps' updates on your own server. If you want to publish your app in Google Play it is best not to use the library. Google Play prohibits self-renewal. API 14+ required.
 
 <p align="center">
-<img src="https://github.com/atzcx/AppVerUpdater/blob/master/screenshots/screenshot.png" >
+<br><img src="https://github.com/atzcx/AppVerUpdater/blob/master/screenshots/screenshot.png" >
 </p>
 
 How to include
@@ -29,14 +29,14 @@ Maven:
 <dependency>
 	<groupId>com.github.atzcx</groupId>
 	<artifactId>AppVerUpdater</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 </dependency>
 ```
 
 
 or Gradle:
 ```JavaScript
-compile 'com.github.atzcx:AppVerUpdater:1.0.1'
+compile 'com.github.atzcx:AppVerUpdater:1.0.2'
 ```
 
 Usage
