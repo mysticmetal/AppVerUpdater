@@ -17,6 +17,8 @@
 package com.github.atzcx.appverupdater;
 
 
+import android.util.Log;
+
 import com.github.atzcx.appverupdater.models.UpdateModel;
 
 import org.json.JSONArray;
@@ -46,7 +48,7 @@ public class JSONParser {
             return updateModel;
 
         } catch (JSONException e){
-            //Exception Handler
+            Log.e(Constans.TAG, "The JSON updater file is mal-formatted.");
         }
 
 

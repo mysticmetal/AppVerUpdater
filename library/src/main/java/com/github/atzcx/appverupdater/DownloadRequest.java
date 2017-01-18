@@ -20,16 +20,14 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.util.Log;
 
-import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
 import com.github.atzcx.appverupdater.interfaces.DownloadListener;
 import com.github.atzcx.appverupdater.utils.UtilsDialog;
-import com.github.atzcx.appverupdater.utils.UtilsUpdater;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -130,8 +128,7 @@ public class DownloadRequest {
                 output.close();
                 input.close();
 
-            } catch (Exception e) {
-                Log.v(Constans.TAG, e.getMessage());
+            } catch (IOException ignore) {
             }
 
             return null;

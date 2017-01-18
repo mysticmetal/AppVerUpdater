@@ -80,8 +80,7 @@ public class StringRequest {
 
             try {
                 response = client.newCall(request).execute();
-            } catch (IOException e) {
-                Log.v(Constans.TAG, e.getMessage());
+            } catch (IOException ignore) {
             }
 
             if (response.isSuccessful()){
@@ -95,8 +94,7 @@ public class StringRequest {
                             return updateModel;
                         }
 
-                    } catch (IOException | JSONException e) {
-                        Log.v(Constans.TAG, "JSON Exception: " + e.getMessage());
+                    } catch (IOException | JSONException ignore) {
                     }
                 } else {
                     listener.onFailure(AppVerUpdaterError.JSON_IS_EMPTY);
@@ -117,7 +115,7 @@ public class StringRequest {
         protected void onPostExecute(UpdateModel updateModel) {
             super.onPostExecute(updateModel);
 
-            if (listener != null) {
+            if (updateModel != null) {
                 listener.onSuccess(updateModel);
             }
         }

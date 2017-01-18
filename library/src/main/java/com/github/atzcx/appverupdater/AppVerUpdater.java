@@ -174,8 +174,8 @@ public class AppVerUpdater {
         return this;
     }
 
-    private void start(){
-        if (Build.VERSION.SDK_INT >= 23){
+    private void start() {
+        if (Build.VERSION.SDK_INT >= 23) {
             new TedPermission(context)
                     .setPermissionListener(permissionListener)
                     .setDeniedMessage(String.valueOf(denied_message))
@@ -196,7 +196,7 @@ public class AppVerUpdater {
 
         @Override
         public void onPermissionDenied(ArrayList<String> deniedPermissions) {
-            for (String s : deniedPermissions){
+            for (String s : deniedPermissions) {
                 Log.v(Constans.TAG, "Permission Denied: " + s);
             }
         }
@@ -207,9 +207,6 @@ public class AppVerUpdater {
         stringRequest = new StringRequest.newCall(context, url, new RequestListener() {
             @Override
             public void onSuccess(UpdateModel update) {
-
-                Log.v(Constans.TAG, "Update: " + update);
-
                 if (UtilsUpdater.isUpdateAvailable(UtilsUpdater.appVersion(context), update.getVersion())) {
 
                     alertDialog = UtilsDialog.showUpdateAvailableDialog(context, title_available, formatContent(context, update), negativeText_available, positiveText_available, message, update.getUrl());
@@ -221,17 +218,23 @@ public class AppVerUpdater {
                     alertDialog.show();
 
                 }
-
             }
 
             @Override
             public void onFailure(AppVerUpdaterError error) {
-                Log.v(Constans.TAG, "Update Exception: " + error);
+                if (error == AppVerUpdaterError.NETWORK_NOT_AVAILABLE){
+                    Log.e(Constans.TAG, "No internet connection");
+                } else if (error == AppVerUpdaterError.URL_IS_EMPTY){
+                    Log.e(Constans.TAG, "The url canot ben null");
+                } else if (error == AppVerUpdaterError.NOT_JSON_FILE_TO_SERVER){
+                    Log.e(Constans.TAG, "The Json file not found on the server");
+                } else if (error == AppVerUpdaterError.JSON_IS_EMPTY){
+                    Log.e(Constans.TAG, "The Json file canot ben null");
+                }
             }
         });
 
         stringRequest.execute();
-
     }
 
     public void stop() {
@@ -247,25 +250,15 @@ public class AppVerUpdater {
     }
 
     private CharSequence formatContent(Context context, UpdateModel update) {
-
-        try {
-
-            if (content_available != null && contentNotes_available != null) {
-
-                if (this.viewNotes) {
-                    if (update.getNotes() != null && !TextUtils.isEmpty(update.getNotes())) {
-                        return String.format(String.valueOf(contentNotes_available), UtilsUpdater.appName(context), update.getVersion(), update.getNotes());
-                    }
-                } else {
-                    return String.format(String.valueOf(content_available), UtilsUpdater.appName(context), update.getVersion());
+        if (content_available != null && contentNotes_available != null) {
+            if (this.viewNotes) {
+                if (update.getNotes() != null && !TextUtils.isEmpty(update.getNotes())) {
+                    return String.format(String.valueOf(contentNotes_available), UtilsUpdater.appName(context), update.getVersion(), update.getNotes());
                 }
-
+            } else {
+                return String.format(String.valueOf(content_available), UtilsUpdater.appName(context), update.getVersion());
             }
-
-        } catch (Exception e) {
-            Log.v(Constans.TAG, "formatContent: " + e.getMessage());
         }
-
         return content_available;
     }
 
