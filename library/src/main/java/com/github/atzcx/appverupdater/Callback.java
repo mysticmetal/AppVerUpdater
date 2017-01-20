@@ -14,43 +14,10 @@
  * limitations under the License.
  */
 
-package com.github.atzcx.appverupdater.enums;
+package com.github.atzcx.appverupdater;
 
-public enum AppVerUpdaterError {
+import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
 
-
-    /**
-     * Not internet connection available
-     */
-
-    NETWORK_NOT_AVAILABLE,
-
-
-    /**
-     * Internet disconnect
-     */
-
-    NETWORK_DISKONNECTED,
-
-    /**
-     * Url is empty
-     */
-
-    URL_IS_EMPTY,
-
-
-    /**
-     * Not json file to server
-     */
-
-    NOT_JSON_FILE_TO_SERVER,
-
-
-    /**
-     * JSON is empty
-     */
-
-    JSON_IS_EMPTY
-
-
+public interface Callback {
+    void onFailure(AppVerUpdaterError error);
 }

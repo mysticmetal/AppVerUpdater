@@ -23,8 +23,11 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Toast;
 
 import com.github.atzcx.appverupdater.AppVerUpdater;
+import com.github.atzcx.appverupdater.Callback;
+import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.material_design_iconic_typeface_library.MaterialDesignIconic;
 
@@ -64,8 +67,23 @@ public class MainActivity extends AppCompatActivity {
                 .setUpdateJSONUrl("http://example.com/updateinfo.json")
                 .setShowNotUpdated(true)
                 .setViewNotes(false)
+                .setCallback(new Callback() {
+                    @Override
+                    public void onFailure(AppVerUpdaterError error) {
+
+                        if (error == AppVerUpdaterError.NETWORK_NOT_AVAILABLE){
+                            Toast.makeText(MainActivity.this, "No Internet Connection", Toast.LENGTH_LONG).show();
+                        } else if (error == AppVerUpdaterError.NETWORK_DISKONNECTED){
+                            Toast.makeText(MainActivity.this, "Internet Disconnected", Toast.LENGTH_LONG).show();
+                        }
+
+                        //Toast.makeText(MainActivity.this, "update erro: " + error, Toast.LENGTH_LONG).show();
+
+                    }
+                })
                 .build();
 
     }
+
 
 }

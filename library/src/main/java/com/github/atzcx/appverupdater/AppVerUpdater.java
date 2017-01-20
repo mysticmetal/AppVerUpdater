@@ -17,33 +17,36 @@
 package com.github.atzcx.appverupdater;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
+import com.github.atzcx.appverupdater.interfaces.DialogListener;
+import com.github.atzcx.appverupdater.interfaces.DownloadListener;
 import com.github.atzcx.appverupdater.interfaces.RequestListener;
-import com.github.atzcx.appverupdater.models.UpdateModel;
-import com.github.atzcx.appverupdater.utils.UtilsDialog;
-import com.github.atzcx.appverupdater.utils.UtilsUpdater;
+import com.github.atzcx.appverupdater.models.Update;
+import com.github.atzcx.appverupdater.utils.DialogUtils;
+import com.github.atzcx.appverupdater.utils.UpdaterUtils;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class AppVerUpdater {
 
     private Context context;
     private String url;
-    private StringRequest.newCall stringRequest;
+    private UpdateClient.StringRequest stringRequest;
+    private UpdateClient.DownloadRequest downloadRequest;
 
     private CharSequence title_available;
     private CharSequence content_available;
@@ -57,6 +60,8 @@ public class AppVerUpdater {
 
     private boolean viewNotes = false;
     private boolean showNotUpdate = false;
+
+    private Callback listener;
 
     private AlertDialog alertDialog;
 
@@ -169,12 +174,12 @@ public class AppVerUpdater {
         return this;
     }
 
-    public AppVerUpdater build() {
-        start();
+    public AppVerUpdater setCallback(Callback listener){
+        this.listener = listener;
         return this;
     }
 
-    private void start() {
+    public AppVerUpdater build() {
         if (Build.VERSION.SDK_INT >= 23) {
             new TedPermission(context)
                     .setPermissionListener(permissionListener)
@@ -186,6 +191,7 @@ public class AppVerUpdater {
         } else {
             update();
         }
+        return this;
     }
 
     private PermissionListener permissionListener = new PermissionListener() {
@@ -203,18 +209,27 @@ public class AppVerUpdater {
     };
 
     private void update() {
-
-        stringRequest = new StringRequest.newCall(context, url, new RequestListener() {
+        stringRequest = new UpdateClient.StringRequest(context, url, new RequestListener() {
             @Override
-            public void onSuccess(UpdateModel update) {
-                if (UtilsUpdater.isUpdateAvailable(UtilsUpdater.appVersion(context), update.getVersion())) {
+            public void onSuccess(final Update update) {
+                if (UpdaterUtils.isUpdateAvailable(UpdaterUtils.appVersion(context), update.getVersion())) {
 
-                    alertDialog = UtilsDialog.showUpdateAvailableDialog(context, title_available, formatContent(context, update), negativeText_available, positiveText_available, message, update.getUrl());
+                    Log.v(Constans.TAG, "Update ok:");
+
+                    alertDialog = DialogUtils.showUpdateAvailableDialog(context, title_available,
+                            formatContent(context, update), negativeText_available,
+                            positiveText_available, message, update.getUrl(), new DialogListener() {
+                                @Override
+                                public void onDone() {
+                                    downloadUpdates(context, update.getUrl(), message);
+                                }
+                            });
+
                     alertDialog.show();
 
                 } else if (showNotUpdate) {
 
-                    alertDialog = UtilsDialog.showUpdateNotAvailableDialog(context, title_not_available, content_not_available);
+                    alertDialog = DialogUtils.showUpdateNotAvailableDialog(context, title_not_available, content_not_available);
                     alertDialog.show();
 
                 }
@@ -222,14 +237,8 @@ public class AppVerUpdater {
 
             @Override
             public void onFailure(AppVerUpdaterError error) {
-                if (error == AppVerUpdaterError.NETWORK_NOT_AVAILABLE){
-                    Log.e(Constans.TAG, "No internet connection");
-                } else if (error == AppVerUpdaterError.URL_IS_EMPTY){
-                    Log.e(Constans.TAG, "The url canot ben null");
-                } else if (error == AppVerUpdaterError.NOT_JSON_FILE_TO_SERVER){
-                    Log.e(Constans.TAG, "The Json file not found on the server");
-                } else if (error == AppVerUpdaterError.JSON_IS_EMPTY){
-                    Log.e(Constans.TAG, "The Json file canot ben null");
+                if (listener != null){
+                    failureCallback(error);
                 }
             }
         });
@@ -241,6 +250,10 @@ public class AppVerUpdater {
         if (stringRequest != null && !stringRequest.isCancelled()) {
             stringRequest.cancel(true);
         }
+
+        if (downloadRequest != null && !downloadRequest.isCancelled()) {
+            downloadRequest.cancel(true);
+        }
     }
 
     public void dismiss() {
@@ -249,17 +262,45 @@ public class AppVerUpdater {
         }
     }
 
-    private CharSequence formatContent(Context context, UpdateModel update) {
+    private CharSequence formatContent(Context context, Update update) {
         if (content_available != null && contentNotes_available != null) {
             if (this.viewNotes) {
                 if (update.getNotes() != null && !TextUtils.isEmpty(update.getNotes())) {
-                    return String.format(String.valueOf(contentNotes_available), UtilsUpdater.appName(context), update.getVersion(), update.getNotes());
+                    return String.format(String.valueOf(contentNotes_available), UpdaterUtils.appName(context), update.getVersion(), update.getNotes());
                 }
             } else {
-                return String.format(String.valueOf(content_available), UtilsUpdater.appName(context), update.getVersion());
+                return String.format(String.valueOf(content_available), UpdaterUtils.appName(context), update.getVersion());
             }
         }
         return content_available;
     }
 
+    private void downloadUpdates(final Context context, String url, CharSequence message){
+        downloadRequest = new UpdateClient.DownloadRequest(context, url, message, "update-" + UpdaterUtils.currentDate() + ".apk", new DownloadListener() {
+            @Override
+            public void onSuccess(File file) {
+                if (file != null){
+                    UpdaterUtils.installApkAsFile(context, file);
+                }
+            }
+
+            @Override
+            public void onFailure(AppVerUpdaterError error) {
+                if (error == AppVerUpdaterError.NETWORK_DISKONNECTED){
+                    failureCallback(AppVerUpdaterError.NETWORK_DISKONNECTED);
+                }
+            }
+        });
+
+        downloadRequest.execute();
+    }
+
+    private void failureCallback(final AppVerUpdaterError error){
+        ((Activity) context).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                listener.onFailure(error);
+            }
+        });
+    }
 }

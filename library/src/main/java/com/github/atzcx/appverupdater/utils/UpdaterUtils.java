@@ -26,18 +26,16 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.github.atzcx.appverupdater.Constans;
-import com.github.atzcx.appverupdater.DownloadRequest;
-import com.github.atzcx.appverupdater.interfaces.DownloadListener;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-public class UtilsUpdater {
+public class UpdaterUtils {
 
     public static String appName(Context context){
         return context.getString(context.getApplicationInfo().labelRes);
@@ -51,6 +49,10 @@ public class UtilsUpdater {
         Calendar c = Calendar.getInstance();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         return df.format(c.getTime());
+    }
+
+    public static void showToast(Context context, String message){
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
     }
 
     public static String appVersion(Context context){
@@ -75,22 +77,6 @@ public class UtilsUpdater {
         return res;
     }
 
-    public static void downloadFile(final Context context, String url, CharSequence message){
-        DownloadRequest.newCall downloadRequest = new DownloadRequest.newCall(context, url, message, "update-" + currentDate() + ".apk", new DownloadListener() {
-            @Override
-            public void onSuccess(File file) {
-
-                Log.v(Constans.TAG, "File: " + file);
-
-                installApkAsFile(context, file);
-
-                //Log.v(Constans.TAG, "Uri: " + Uri.fromFile(file));
-
-            }
-        });
-
-        downloadRequest.execute();
-    }
 
     public static void installApkAsFile(Context context, File filePath){
         if (filePath != null){
@@ -99,7 +85,7 @@ public class UtilsUpdater {
 
             if (Build.VERSION.SDK_INT >= 24){
 
-                intent = UtilsNougat.formatFileProviderIntent(context, filePath, intent, "application/vnd.android.package-archive");
+                intent = NougatUtils.formatFileProviderIntent(context, filePath, intent, "application/vnd.android.package-archive");
 
             } else {
 

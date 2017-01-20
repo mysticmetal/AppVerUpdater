@@ -16,8 +16,11 @@
 
 package com.github.atzcx.appverupdater.interfaces;
 
+import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
+
 import java.io.File;
 
 public interface DownloadListener {
     void onSuccess(File file);
+    void onFailure(AppVerUpdaterError error);
 }

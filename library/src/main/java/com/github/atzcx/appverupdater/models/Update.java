@@ -16,15 +16,15 @@
 
 package com.github.atzcx.appverupdater.models;
 
-public class UpdateModel {
+public class Update {
 
     private String version;
     private String url;
     private String notes;
 
-    public UpdateModel(){}
+    public Update(){}
 
-    public UpdateModel(String version, String url, String notes) {
+    public Update(String version, String url, String notes) {
         this.version = version;
         this.url = url;
         this.notes = notes;
@@ -56,7 +56,7 @@ public class UpdateModel {
 
     @Override
     public String toString() {
-        return "UpdateModel{" +
+        return "Update{" +
                 "version='" + version + '\'' +
                 ", url='" + url + '\'' +
                 ", notes='" + notes + '\'' +

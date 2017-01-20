@@ -24,7 +24,7 @@ import android.support.v4.content.FileProvider;
 
 import java.io.File;
 
-public class UtilsNougat {
+public class NougatUtils {
 
     public static Intent formatFileProviderIntent(Context context, File file, Intent intent, String intentType) {
 

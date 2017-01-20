@@ -29,14 +29,14 @@ Maven:
 <dependency>
 	<groupId>com.github.atzcx</groupId>
 	<artifactId>AppVerUpdater</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 </dependency>
 ```
 
 
 or Gradle:
 ```JavaScript
-compile 'com.github.atzcx:AppVerUpdater:1.0.3'
+compile 'com.github.atzcx:AppVerUpdater:1.0.4'
 ```
 
 Usage
@@ -58,6 +58,25 @@ new AppVerUpdater(this)
 	.setUpdateJSONUrl("http://example.com/update.json")
 	.setShowNotUpdated(true)
 	.setViewNotes(true)
+	.build();
+```
+Callback
+
+```Java
+new AppVerUpdater(MainActivity.this)
+	.setUpdateJSONUrl("http://example.com/updateinfo.json")
+	.setShowNotUpdated(true)
+	.setViewNotes(false)
+	.setCallback(new Callback() {
+	     @Override
+	     public void onFailure(AppVerUpdaterError error) {
+		  if (error == AppVerUpdaterError.NETWORK_NOT_AVAILABLE){
+			Toast.makeText(MainActivity.this, "No Internet Connection", Toast.LENGTH_LONG).show();
+		  } else if (error == AppVerUpdaterError.NETWORK_DISKONNECTED){
+			Toast.makeText(MainActivity.this, "Internet Disconnected", Toast.LENGTH_LONG).show();
+		  }
+	    }
+	})
 	.build();
 ```
 
@@ -95,7 +114,8 @@ String Resourses
 
 License
 ----------
-
+    Copyright 2016 Aleksandr Tarakanov
+    
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at

@@ -22,9 +22,11 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
-public class UtilsDialog {
+import com.github.atzcx.appverupdater.interfaces.DialogListener;
 
-    public static AlertDialog showUpdateAvailableDialog(final Context context, CharSequence title, final CharSequence content, CharSequence btnNegative, CharSequence btnPositive, final CharSequence message, final String url) {
+public class DialogUtils {
+
+    public static AlertDialog showUpdateAvailableDialog(final Context context, CharSequence title, final CharSequence content, CharSequence btnNegative, CharSequence btnPositive, final CharSequence message, final String url, final DialogListener listener) {
 
         return new AlertDialog.Builder(context)
                 .setTitle(title)
@@ -32,7 +34,7 @@ public class UtilsDialog {
                 .setPositiveButton(btnPositive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        UtilsUpdater.downloadFile(context, url, message);
+                        listener.onDone();
                     }
                 })
                 .setNegativeButton(btnNegative, new DialogInterface.OnClickListener() {

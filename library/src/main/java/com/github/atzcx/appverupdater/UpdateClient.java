@@ -20,9 +20,17 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Log;
 
+import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
 import com.github.atzcx.appverupdater.interfaces.DownloadListener;
-import com.github.atzcx.appverupdater.utils.UtilsDialog;
+import com.github.atzcx.appverupdater.interfaces.RequestListener;
+import com.github.atzcx.appverupdater.models.Update;
+import com.github.atzcx.appverupdater.utils.DialogUtils;
+import com.github.atzcx.appverupdater.utils.UpdaterUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -35,9 +43,97 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class DownloadRequest {
+public class UpdateClient {
 
-    public static class newCall extends AsyncTask<Void, String, File> {
+
+    public static class StringRequest extends AsyncTask<Void, Void, Update> {
+
+        private Context context;
+        private String url;
+        private RequestListener listener;
+        private OkHttpClient client;
+        private Response response;
+        private Request request;
+
+        public StringRequest(Context context, String url, RequestListener listener) {
+            this.context = context;
+            this.url = url;
+            this.listener = listener;
+            this.client = new OkHttpClient();
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            if (listener == null || context == null || client == null) {
+                cancel(true);
+            } else if (UpdaterUtils.isNetworkAvailable(context)) {
+                if (url == null) {
+                    listener.onFailure(AppVerUpdaterError.URL_IS_EMPTY);
+                    cancel(true);
+                }
+            } else {
+                listener.onFailure(AppVerUpdaterError.NETWORK_NOT_AVAILABLE);
+                cancel(true);
+            }
+
+        }
+
+        @Override
+        protected Update doInBackground(Void... voids) {
+
+            request = new Request.Builder()
+                    .url(this.url)
+                    .build();
+
+
+            try {
+                response = client.newCall(request).execute();
+            } catch (IOException ignore) {
+            }
+
+            if (response.isSuccessful()){
+
+                if (response != null){
+                    try {
+
+                        Update updateModel = JSONParser.parse(new JSONObject(response.body().string()));
+
+                        if (updateModel != null){
+                            return updateModel;
+                        }
+
+                    } catch (IOException | JSONException ignore) {
+                    }
+                } else {
+                    listener.onFailure(AppVerUpdaterError.JSON_IS_EMPTY);
+                }
+
+            } else {
+
+                if (response.code() == 404){
+                    listener.onFailure(AppVerUpdaterError.NOT_JSON_FILE_TO_SERVER);
+                }
+
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Update updateModel) {
+            super.onPostExecute(updateModel);
+
+            if (updateModel != null) {
+                listener.onSuccess(updateModel);
+            }
+        }
+    }
+
+
+
+    public static class DownloadRequest extends AsyncTask<Void, String, File> {
 
         private Context context;
         private String url;
@@ -55,13 +151,13 @@ public class DownloadRequest {
         private InputStream input = null;
         private OutputStream output = null;
 
-        public newCall(Context context, String url, CharSequence message, String downloadFileName, DownloadListener listener) {
+        public DownloadRequest(Context context, String url, CharSequence message, String downloadFileName, DownloadListener listener) {
             this.context = context;
             this.url = url;
             this.message = message;
             this.downloadFileName = downloadFileName;
             this.listener = listener;
-            this.progressDialog = UtilsDialog.showDownloadProgressDialog(context, this.message);
+            this.progressDialog = DialogUtils.showDownloadProgressDialog(context, this.message);
             this.client = new OkHttpClient();
         }
 
@@ -71,9 +167,12 @@ public class DownloadRequest {
 
             if (listener == null || context == null || client == null) {
                 cancel(true);
-            }
-
-            if (url == null) {
+            } else if (UpdaterUtils.isNetworkAvailable(context)){
+                if (url == null){
+                    cancel(true);
+                }
+            } else {
+                listener.onFailure(AppVerUpdaterError.NETWORK_NOT_AVAILABLE);
                 cancel(true);
             }
 
@@ -128,7 +227,8 @@ public class DownloadRequest {
                 output.close();
                 input.close();
 
-            } catch (IOException ignore) {
+            } catch (IOException e) {
+                Log.v(Constans.TAG, "Error: " + e.getMessage() == null ? "" : e.getMessage());
             }
 
             return null;
@@ -149,6 +249,11 @@ public class DownloadRequest {
                 listener.onSuccess(file);
             }
 
+            if (!UpdaterUtils.isNetworkAvailable(context)){
+                listener.onFailure(AppVerUpdaterError.NETWORK_DISKONNECTED);
+            }
+
         }
     }
+
 }

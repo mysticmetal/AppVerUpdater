@@ -19,7 +19,7 @@ package com.github.atzcx.appverupdater;
 
 import android.util.Log;
 
-import com.github.atzcx.appverupdater.models.UpdateModel;
+import com.github.atzcx.appverupdater.models.Update;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,10 +31,10 @@ public class JSONParser {
     private static final String KEY_RELEASE_NOTES = "versionNotes";
     private static final String KEY_URL = "apkUrl";
 
-    public static UpdateModel parse(JSONObject jsonObject){
+    public static Update parse(JSONObject jsonObject){
 
         try {
-            UpdateModel updateModel = new UpdateModel();
+            Update updateModel = new Update();
             updateModel.setVersion(jsonObject.getString(KEY_LATEST_VERSION).trim());
             updateModel.setUrl(jsonObject.getString(KEY_URL));
             JSONArray releaseArr = jsonObject.optJSONArray(KEY_RELEASE_NOTES);
