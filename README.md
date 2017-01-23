@@ -29,14 +29,14 @@ Maven:
 <dependency>
 	<groupId>com.github.atzcx</groupId>
 	<artifactId>AppVerUpdater</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 </dependency>
 ```
 
 
 or Gradle:
 ```JavaScript
-compile 'com.github.atzcx:AppVerUpdater:1.0.4'
+compile 'com.github.atzcx:AppVerUpdater:1.0.5'
 ```
 
 Usage
