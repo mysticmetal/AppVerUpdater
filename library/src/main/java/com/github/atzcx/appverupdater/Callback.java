@@ -16,8 +16,8 @@
 
 package com.github.atzcx.appverupdater;
 
-import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
+import com.github.atzcx.appverupdater.enums.UpdateErrors;
 
 public interface Callback {
-    void onFailure(AppVerUpdaterError error);
+    void onFailure(UpdateErrors error);
 }

@@ -16,41 +16,30 @@
 
 package com.github.atzcx.appverupdater.enums;
 
-public enum AppVerUpdaterError {
+public enum UpdateErrors {
 
-
-    /**
-     * Not internet connection available
-     */
 
     NETWORK_NOT_AVAILABLE,
 
 
-    /**
-     * Internet disconnect
-     */
-
-    NETWORK_DISKONNECTED,
-
-    /**
-     * Url is empty
-     */
-
-    URL_IS_EMPTY,
+    NETWORK_DISCONNECTED,
 
 
-    /**
-     * Not json file to server
-     */
-
-    NOT_JSON_FILE_TO_SERVER,
+    SOCET_TIMEOUT_EXCEPTION,
 
 
-    /**
-     * JSON is empty
-     */
+    UNKNOWN_HOST_EXCEPTION,
 
-    JSON_IS_EMPTY
 
+    SOCET_EXCEPTION,
+
+
+    STRING_URL_IS_EMPTY,
+
+
+    JSON_FILE_IS_MISSING,
+
+
+    FILE_JSON_NO_DATA
 
 }

@@ -27,7 +27,8 @@ import android.widget.Toast;
 
 import com.github.atzcx.appverupdater.AppVerUpdater;
 import com.github.atzcx.appverupdater.Callback;
-import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
+import com.github.atzcx.appverupdater.enums.UpdateErrors;
+import com.github.atzcx.appverupdater.models.Update;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.material_design_iconic_typeface_library.MaterialDesignIconic;
 
@@ -64,20 +65,31 @@ public class MainActivity extends AppCompatActivity {
     private void update(){
 
         new AppVerUpdater(MainActivity.this)
-                .setUpdateJSONUrl("http://example.com/updateinfo.json")
+                .setUpdateJSONUrl("http://example.net/example.json")
                 .setShowNotUpdated(true)
                 .setViewNotes(false)
                 .setCallback(new Callback() {
                     @Override
-                    public void onFailure(AppVerUpdaterError error) {
+                    public void onFailure(UpdateErrors error) {
 
-                        if (error == AppVerUpdaterError.NETWORK_NOT_AVAILABLE){
+                        if (error == UpdateErrors.NETWORK_NOT_AVAILABLE){
                             Toast.makeText(MainActivity.this, "No Internet Connection", Toast.LENGTH_LONG).show();
-                        } else if (error == AppVerUpdaterError.NETWORK_DISKONNECTED){
+                        } else if (error == UpdateErrors.NETWORK_DISCONNECTED){
                             Toast.makeText(MainActivity.this, "Internet Disconnected", Toast.LENGTH_LONG).show();
+                        } else if(error == UpdateErrors.SOCET_TIMEOUT_EXCEPTION){
+                            Toast.makeText(MainActivity.this, "Socet timeout exception, Please try again.", Toast.LENGTH_LONG).show();
                         }
 
-                        //Toast.makeText(MainActivity.this, "update erro: " + error, Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "Exception: " + error, Toast.LENGTH_LONG).show();
+
+//                       UpdateErrors.NETWORK_NOT_AVAILABLE
+//                       UpdateErrors.NETWORK_DISCONNECTED
+//                       UpdateErrors.SOCET_TIMEOUT_EXCEPTION
+//                       UpdateErrors.UNKNOWN_HOST_EXCEPTION
+//                       UpdateErrors.SOCET_EXCEPTION
+//                       UpdateErrors.STRING_URL_IS_EMPTY
+//                       UpdateErrors.JSON_FILE_IS_MISSING
+//                       UpdateErrors.FILE_JSON_NO_DATA
 
                     }
                 })

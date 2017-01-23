@@ -21,14 +21,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Build;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
+import com.github.atzcx.appverupdater.enums.UpdateErrors;
 import com.github.atzcx.appverupdater.interfaces.DialogListener;
 import com.github.atzcx.appverupdater.interfaces.DownloadListener;
 import com.github.atzcx.appverupdater.interfaces.RequestListener;
@@ -45,8 +43,8 @@ public class AppVerUpdater {
 
     private Context context;
     private String url;
-    private UpdateClient.StringRequest stringRequest;
-    private UpdateClient.DownloadRequest downloadRequest;
+    private AsyncClient.StringRequest stringRequest;
+    private AsyncClient.DownloadRequest downloadRequest;
 
     private CharSequence title_available;
     private CharSequence content_available;
@@ -209,7 +207,7 @@ public class AppVerUpdater {
     };
 
     private void update() {
-        stringRequest = new UpdateClient.StringRequest(context, url, new RequestListener() {
+        stringRequest = new AsyncClient.StringRequest(context, url, new RequestListener() {
             @Override
             public void onSuccess(final Update update) {
                 if (UpdaterUtils.isUpdateAvailable(UpdaterUtils.appVersion(context), update.getVersion())) {
@@ -236,7 +234,7 @@ public class AppVerUpdater {
             }
 
             @Override
-            public void onFailure(AppVerUpdaterError error) {
+            public void onFailure(UpdateErrors error) {
                 if (listener != null){
                     failureCallback(error);
                 }
@@ -276,7 +274,7 @@ public class AppVerUpdater {
     }
 
     private void downloadUpdates(final Context context, String url, CharSequence message){
-        downloadRequest = new UpdateClient.DownloadRequest(context, url, message, "update-" + UpdaterUtils.currentDate() + ".apk", new DownloadListener() {
+        downloadRequest = new AsyncClient.DownloadRequest(context, url, message, "update-" + UpdaterUtils.currentDate() + ".apk", new DownloadListener() {
             @Override
             public void onSuccess(File file) {
                 if (file != null){
@@ -285,9 +283,9 @@ public class AppVerUpdater {
             }
 
             @Override
-            public void onFailure(AppVerUpdaterError error) {
-                if (error == AppVerUpdaterError.NETWORK_DISKONNECTED){
-                    failureCallback(AppVerUpdaterError.NETWORK_DISKONNECTED);
+            public void onFailure(UpdateErrors error) {
+                if (error == UpdateErrors.NETWORK_DISCONNECTED){
+                    failureCallback(UpdateErrors.NETWORK_DISCONNECTED);
                 }
             }
         });
@@ -295,7 +293,7 @@ public class AppVerUpdater {
         downloadRequest.execute();
     }
 
-    private void failureCallback(final AppVerUpdaterError error){
+    private void failureCallback(final UpdateErrors error){
         ((Activity) context).runOnUiThread(new Runnable() {
             @Override
             public void run() {

@@ -17,10 +17,10 @@
 package com.github.atzcx.appverupdater.interfaces;
 
 
-import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
+import com.github.atzcx.appverupdater.enums.UpdateErrors;
 import com.github.atzcx.appverupdater.models.Update;
 
 public interface RequestListener {
     void onSuccess(Update update);
-    void onFailure(AppVerUpdaterError error);
+    void onFailure(UpdateErrors error);
 }

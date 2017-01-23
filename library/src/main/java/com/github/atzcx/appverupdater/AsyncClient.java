@@ -20,9 +20,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.util.Log;
 
-import com.github.atzcx.appverupdater.enums.AppVerUpdaterError;
+import com.github.atzcx.appverupdater.enums.UpdateErrors;
 import com.github.atzcx.appverupdater.interfaces.DownloadListener;
 import com.github.atzcx.appverupdater.interfaces.RequestListener;
 import com.github.atzcx.appverupdater.models.Update;
@@ -38,13 +37,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class UpdateClient {
+public class AsyncClient {
 
+
+    /**
+     * Information from the server about new ads app
+     */
 
     public static class StringRequest extends AsyncTask<Void, Void, Update> {
 
@@ -59,7 +66,10 @@ public class UpdateClient {
             this.context = context;
             this.url = url;
             this.listener = listener;
-            this.client = new OkHttpClient();
+            this.client = new OkHttpClient.Builder()
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS).build();
+
         }
 
         @Override
@@ -70,11 +80,11 @@ public class UpdateClient {
                 cancel(true);
             } else if (UpdaterUtils.isNetworkAvailable(context)) {
                 if (url == null) {
-                    listener.onFailure(AppVerUpdaterError.URL_IS_EMPTY);
+                    listener.onFailure(UpdateErrors.STRING_URL_IS_EMPTY);
                     cancel(true);
                 }
             } else {
-                listener.onFailure(AppVerUpdaterError.NETWORK_NOT_AVAILABLE);
+                listener.onFailure(UpdateErrors.NETWORK_NOT_AVAILABLE);
                 cancel(true);
             }
 
@@ -87,33 +97,42 @@ public class UpdateClient {
                     .url(this.url)
                     .build();
 
-
             try {
                 response = client.newCall(request).execute();
-            } catch (IOException ignore) {
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+                listener.onFailure(UpdateErrors.UNKNOWN_HOST_EXCEPTION);
+            } catch (SocketTimeoutException e) {
+                e.printStackTrace();
+                listener.onFailure(UpdateErrors.SOCET_TIMEOUT_EXCEPTION);
+            } catch (SocketException e) {
+                e.printStackTrace();
+                listener.onFailure(UpdateErrors.SOCET_EXCEPTION);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            if (response.isSuccessful()){
+            if (response.isSuccessful()) {
 
-                if (response != null){
+                if (response != null) {
                     try {
 
                         Update updateModel = JSONParser.parse(new JSONObject(response.body().string()));
 
-                        if (updateModel != null){
+                        if (updateModel != null) {
                             return updateModel;
                         }
 
                     } catch (IOException | JSONException ignore) {
                     }
                 } else {
-                    listener.onFailure(AppVerUpdaterError.JSON_IS_EMPTY);
+                    listener.onFailure(UpdateErrors.FILE_JSON_NO_DATA);
                 }
 
             } else {
 
-                if (response.code() == 404){
-                    listener.onFailure(AppVerUpdaterError.NOT_JSON_FILE_TO_SERVER);
+                if (response.code() == 404) {
+                    listener.onFailure(UpdateErrors.JSON_FILE_IS_MISSING);
                 }
 
             }
@@ -131,7 +150,9 @@ public class UpdateClient {
         }
     }
 
-
+    /**
+     * Download the updates from the server
+     */
 
     public static class DownloadRequest extends AsyncTask<Void, String, File> {
 
@@ -158,7 +179,9 @@ public class UpdateClient {
             this.downloadFileName = downloadFileName;
             this.listener = listener;
             this.progressDialog = DialogUtils.showDownloadProgressDialog(context, this.message);
-            this.client = new OkHttpClient();
+            this.client = new OkHttpClient.Builder()
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS).build();
         }
 
         @Override
@@ -167,12 +190,12 @@ public class UpdateClient {
 
             if (listener == null || context == null || client == null) {
                 cancel(true);
-            } else if (UpdaterUtils.isNetworkAvailable(context)){
-                if (url == null){
+            } else if (UpdaterUtils.isNetworkAvailable(context)) {
+                if (url == null) {
                     cancel(true);
                 }
             } else {
-                listener.onFailure(AppVerUpdaterError.NETWORK_NOT_AVAILABLE);
+                listener.onFailure(UpdateErrors.NETWORK_NOT_AVAILABLE);
                 cancel(true);
             }
 
@@ -217,7 +240,7 @@ public class UpdateClient {
 
                     }
 
-                    if (output != null){
+                    if (output != null) {
                         return new File(SDCardRoot, downloadFileName);
                     }
 
@@ -227,10 +250,19 @@ public class UpdateClient {
                 output.close();
                 input.close();
 
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+                listener.onFailure(UpdateErrors.UNKNOWN_HOST_EXCEPTION);
+            } catch (SocketTimeoutException e) {
+                e.printStackTrace();
+                listener.onFailure(UpdateErrors.SOCET_TIMEOUT_EXCEPTION);
+            } catch (SocketException e) {
+                e.printStackTrace();
+                listener.onFailure(UpdateErrors.SOCET_EXCEPTION);
             } catch (IOException e) {
                 e.printStackTrace();
-                //Log.v(Constans.TAG, "Error: " + e.getMessage() == null ? "" : e.getMessage());
             }
+
 
             return null;
         }
@@ -250,8 +282,8 @@ public class UpdateClient {
                 listener.onSuccess(file);
             }
 
-            if (!UpdaterUtils.isNetworkAvailable(context)){
-                listener.onFailure(AppVerUpdaterError.NETWORK_DISKONNECTED);
+            if (!UpdaterUtils.isNetworkAvailable(context)) {
+                listener.onFailure(UpdateErrors.NETWORK_DISCONNECTED);
             }
 
         }

@@ -80,22 +80,13 @@ public class UpdaterUtils {
 
     public static void installApkAsFile(Context context, File filePath){
         if (filePath != null){
-
             Intent intent = new Intent(Intent.ACTION_VIEW);
-
             if (Build.VERSION.SDK_INT >= 24){
-
                 intent = NougatUtils.formatFileProviderIntent(context, filePath, intent, "application/vnd.android.package-archive");
-
             } else {
-
                 intent.setDataAndType(Uri.fromFile(filePath), "application/vnd.android.package-archive");
-
             }
-
-
             context.startActivity(intent);
-
         } else {
             Log.v(Constans.TAG, "apk update not found");
         }
