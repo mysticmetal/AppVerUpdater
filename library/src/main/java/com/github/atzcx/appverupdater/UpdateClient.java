@@ -228,7 +228,8 @@ public class UpdateClient {
                 input.close();
 
             } catch (IOException e) {
-                Log.v(Constans.TAG, "Error: " + e.getMessage() == null ? "" : e.getMessage());
+                e.printStackTrace();
+                //Log.v(Constans.TAG, "Error: " + e.getMessage() == null ? "" : e.getMessage());
             }
 
             return null;
