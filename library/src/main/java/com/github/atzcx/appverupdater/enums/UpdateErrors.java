@@ -18,27 +18,44 @@ package com.github.atzcx.appverupdater.enums;
 
 public enum UpdateErrors {
 
+    /**
+     * No internet connection.
+     */
 
     NETWORK_NOT_AVAILABLE,
 
 
-    NETWORK_DISCONNECTED,
+    /**
+     * Lost internet connection.
+     */
+
+    //NETWORK_DISCONNECTED,
 
 
-    SOCET_TIMEOUT_EXCEPTION,
+    /**
+     * An error occurred when downloading updates.
+     */
+
+    ERROR_DOWNLOADING_UPDATES,
 
 
-    UNKNOWN_HOST_EXCEPTION,
+    /**
+     * An error occurred while checking for updates.
+     */
+
+    ERROR_CHECKING_UPDATES,
 
 
-    SOCET_EXCEPTION,
-
-
-    STRING_URL_IS_EMPTY,
-
+    /**
+     * Json file is missing.
+     */
 
     JSON_FILE_IS_MISSING,
 
+
+    /**
+     * "The file containing information about the updates are empty.
+     */
 
     FILE_JSON_NO_DATA
 

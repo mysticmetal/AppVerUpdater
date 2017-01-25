@@ -17,9 +17,14 @@
 package com.github.atzcx.appverupdater;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.os.AsyncTask;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Environment;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.github.atzcx.appverupdater.enums.UpdateErrors;
 import com.github.atzcx.appverupdater.interfaces.DownloadListener;
@@ -27,21 +32,21 @@ import com.github.atzcx.appverupdater.interfaces.RequestListener;
 import com.github.atzcx.appverupdater.models.Update;
 import com.github.atzcx.appverupdater.utils.DialogUtils;
 import com.github.atzcx.appverupdater.utils.UpdaterUtils;
+import com.thin.downloadmanager.DownloadRequest;
+import com.thin.downloadmanager.DownloadStatusListenerV1;
+import com.thin.downloadmanager.ThinDownloadManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -53,7 +58,7 @@ public class AsyncClient {
      * Information from the server about new ads app
      */
 
-    public static class StringRequest extends AsyncTask<Void, Void, Update> {
+    public static class AsyncStringRequest {
 
         private Context context;
         private String url;
@@ -62,7 +67,7 @@ public class AsyncClient {
         private Response response;
         private Request request;
 
-        public StringRequest(Context context, String url, RequestListener listener) {
+        public AsyncStringRequest(Context context, String url, RequestListener listener) {
             this.context = context;
             this.url = url;
             this.listener = listener;
@@ -72,89 +77,70 @@ public class AsyncClient {
 
         }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
+        public void execute() {
 
             if (listener == null || context == null || client == null) {
-                cancel(true);
+                return;
             } else if (UpdaterUtils.isNetworkAvailable(context)) {
-                if (url == null) {
-                    listener.onFailure(UpdateErrors.STRING_URL_IS_EMPTY);
-                    cancel(true);
+                if (url == null || url.length() == 0) {
+                    throw new RuntimeException("Argument Url cannot be null or empty");
                 }
             } else {
                 listener.onFailure(UpdateErrors.NETWORK_NOT_AVAILABLE);
-                cancel(true);
+                return;
             }
 
-        }
-
-        @Override
-        protected Update doInBackground(Void... voids) {
 
             request = new Request.Builder()
                     .url(this.url)
                     .build();
 
-            try {
-                response = client.newCall(request).execute();
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-                listener.onFailure(UpdateErrors.UNKNOWN_HOST_EXCEPTION);
-            } catch (SocketTimeoutException e) {
-                e.printStackTrace();
-                listener.onFailure(UpdateErrors.SOCET_TIMEOUT_EXCEPTION);
-            } catch (SocketException e) {
-                e.printStackTrace();
-                listener.onFailure(UpdateErrors.SOCET_EXCEPTION);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    listener.onFailure(UpdateErrors.ERROR_CHECKING_UPDATES);
+                }
 
-            if (response.isSuccessful()) {
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.isSuccessful()) {
 
-                if (response != null) {
-                    try {
+                        if (response != null) {
+                            try {
 
-                        Update updateModel = JSONParser.parse(new JSONObject(response.body().string()));
+                                Update updateModel = JSONParser.parse(new JSONObject(response.body().string()));
 
-                        if (updateModel != null) {
-                            return updateModel;
+                                if (updateModel != null) {
+                                    listener.onSuccess(updateModel);
+                                }
+
+                            } catch (IOException | JSONException e) {
+                                listener.onFailure(UpdateErrors.ERROR_CHECKING_UPDATES);
+                            }
+                        } else {
+                            listener.onFailure(UpdateErrors.FILE_JSON_NO_DATA);
                         }
 
-                    } catch (IOException | JSONException ignore) {
+                    } else {
+
+                        if (response.code() == 404) {
+                            listener.onFailure(UpdateErrors.JSON_FILE_IS_MISSING);
+                        }
+
                     }
-                } else {
-                    listener.onFailure(UpdateErrors.FILE_JSON_NO_DATA);
                 }
+            });
 
-            } else {
-
-                if (response.code() == 404) {
-                    listener.onFailure(UpdateErrors.JSON_FILE_IS_MISSING);
-                }
-
-            }
-
-            return null;
         }
 
-        @Override
-        protected void onPostExecute(Update updateModel) {
-            super.onPostExecute(updateModel);
-
-            if (updateModel != null) {
-                listener.onSuccess(updateModel);
-            }
-        }
     }
+
 
     /**
      * Download the updates from the server
      */
 
-    public static class DownloadRequest extends AsyncTask<Void, String, File> {
+    public static class AsyncDownloadRequest {
 
         private Context context;
         private String url;
@@ -162,131 +148,79 @@ public class AsyncClient {
         private CharSequence message;
         private String downloadFileName;
         private DownloadListener listener;
-        private OkHttpClient client;
-        private Response response;
-        private Request request;
-
         private ProgressDialog progressDialog;
 
-        private int count;
-        private InputStream input = null;
-        private OutputStream output = null;
+        private DownloadRequest downloadRequest;
 
-        public DownloadRequest(Context context, String url, CharSequence message, String downloadFileName, DownloadListener listener) {
+        public AsyncDownloadRequest(final Context context, String url, CharSequence message, String downloadFileName, DownloadListener listener) {
             this.context = context;
             this.url = url;
             this.message = message;
             this.downloadFileName = downloadFileName;
             this.listener = listener;
             this.progressDialog = DialogUtils.showDownloadProgressDialog(context, this.message);
-            this.client = new OkHttpClient.Builder()
-                    .connectTimeout(10, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS).build();
         }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
 
-            if (listener == null || context == null || client == null) {
-                cancel(true);
+        public void execute() {
+
+            if (listener == null || context == null) {
+                return;
             } else if (UpdaterUtils.isNetworkAvailable(context)) {
-                if (url == null) {
-                    cancel(true);
+                if (url == null || url.length() == 0) {
+                    throw new RuntimeException("Argument Url cannot be null or empty");
                 }
             } else {
                 listener.onFailure(UpdateErrors.NETWORK_NOT_AVAILABLE);
-                cancel(true);
+                return;
             }
 
             this.progressDialog.show();
-        }
 
-        @Override
-        protected File doInBackground(Void... param) {
-            try {
+            Uri downloadUri = Uri.parse(this.url);
 
-                request = new Request.Builder()
-                        .url(this.url)
-                        .build();
+            final File SDCardRoot = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download");
 
-                response = client.newCall(request).execute();
+             if (SDCardRoot.exists() == false) {
+                 SDCardRoot.mkdirs();
+             }
 
-                if (response.isSuccessful()) {
+            File file = new File(SDCardRoot, downloadFileName);
 
-                    File SDCardRoot = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download");
+            Uri destinationUri = Uri.parse(file.getPath());
 
-                    if (SDCardRoot.exists() == false) {
-                        SDCardRoot.mkdirs();
-                    }
+            ThinDownloadManager downloadManager = new ThinDownloadManager(5);
 
-                    File file = new File(SDCardRoot, downloadFileName);
+            downloadRequest = new DownloadRequest(downloadUri)
+                    .setDestinationURI(destinationUri);
 
-                    int length = (int) response.body().contentLength();
+            downloadManager.add(downloadRequest);
 
-                    input = new BufferedInputStream(response.body().byteStream(), 10 * 1024);
-
-                    output = new FileOutputStream(file);
-
-                    byte data[] = new byte[1024];
-                    long total = 0;
-
-                    while ((count = input.read(data)) != -1) {
-                        total += count;
-
-                        publishProgress("" + (int) ((total * 100) / length));
-
-                        output.write(data, 0, count);
-
-                    }
-
-                    if (output != null) {
-                        return new File(SDCardRoot, downloadFileName);
-                    }
-
+            downloadRequest.setStatusListener(new DownloadStatusListenerV1() {
+                @Override
+                public void onDownloadComplete(DownloadRequest downloadRequest) {
+                    AsyncDownloadRequest.this.progressDialog.dismiss();
+                    listener.onSuccess(new File(SDCardRoot, downloadFileName));
                 }
 
-                output.flush();
-                output.close();
-                input.close();
+                @Override
+                public void onDownloadFailed(DownloadRequest downloadRequest, int errorCode, String errorMessage) {
+                    listener.onFailure(UpdateErrors.ERROR_DOWNLOADING_UPDATES);
+                    AsyncDownloadRequest.this.progressDialog.dismiss();
+                }
 
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-                listener.onFailure(UpdateErrors.UNKNOWN_HOST_EXCEPTION);
-            } catch (SocketTimeoutException e) {
-                e.printStackTrace();
-                listener.onFailure(UpdateErrors.SOCET_TIMEOUT_EXCEPTION);
-            } catch (SocketException e) {
-                e.printStackTrace();
-                listener.onFailure(UpdateErrors.SOCET_EXCEPTION);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(String... progress) {
-            super.onProgressUpdate(progress);
-            this.progressDialog.setMessage(this.message + " - " + Integer.parseInt(progress[0]) + "%");
-        }
-
-        @Override
-        protected void onPostExecute(File file) {
-            super.onPostExecute(file);
-            this.progressDialog.dismiss();
-
-            if (file != null) {
-                listener.onSuccess(file);
-            }
-
-            if (!UpdaterUtils.isNetworkAvailable(context)) {
-                listener.onFailure(UpdateErrors.NETWORK_DISCONNECTED);
-            }
+                @Override
+                public void onProgress(DownloadRequest downloadRequest, long totalBytes, long downloadedBytes, int progress) {
+                    AsyncDownloadRequest.this.progressDialog.setMessage(AsyncDownloadRequest.this.message + " - " + progress + "%");
+                }
+            });
 
         }
+
+        public DownloadRequest get(){
+            return downloadRequest;
+        }
+
     }
 
 }

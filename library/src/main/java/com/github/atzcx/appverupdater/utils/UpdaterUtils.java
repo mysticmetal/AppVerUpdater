@@ -29,6 +29,7 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.github.atzcx.appverupdater.BuildConfig;
 import com.github.atzcx.appverupdater.Constans;
 
 import java.io.File;
@@ -88,7 +89,9 @@ public class UpdaterUtils {
             }
             context.startActivity(intent);
         } else {
-            Log.v(Constans.TAG, "apk update not found");
+           if (BuildConfig.DEBUG){
+               Log.v(Constans.TAG, "apk update not found");
+           }
         }
     }
 

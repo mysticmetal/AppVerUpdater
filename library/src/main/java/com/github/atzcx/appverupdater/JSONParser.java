@@ -35,8 +35,21 @@ public class JSONParser {
 
         try {
             Update updateModel = new Update();
-            updateModel.setVersion(jsonObject.getString(KEY_LATEST_VERSION).trim());
-            updateModel.setUrl(jsonObject.getString(KEY_URL));
+
+            String JsonNewVersion = jsonObject.getString(KEY_LATEST_VERSION).trim();
+            String JsonApkUrl = jsonObject.getString(KEY_URL);
+
+            if (JsonNewVersion == null || JsonNewVersion.length() == 0) {
+                throw new IllegalArgumentException("Argument JsonNewVersion cannot be null or empty");
+            }
+
+            if (JsonApkUrl == null || JsonApkUrl.length() == 0) {
+                throw new IllegalArgumentException("Argument JsonApkUrl cannot be null or empty");
+            }
+
+            updateModel.setVersion(JsonNewVersion);
+            updateModel.setUrl(JsonApkUrl);
+
             JSONArray releaseArr = jsonObject.optJSONArray(KEY_RELEASE_NOTES);
             StringBuilder builder = new StringBuilder();
             for(int i = 0; i < releaseArr.length(); ++i) {
@@ -48,7 +61,9 @@ public class JSONParser {
             return updateModel;
 
         } catch (JSONException e){
-            Log.e(Constans.TAG, "The JSON updater file is mal-formatted.");
+            if (BuildConfig.DEBUG){
+                Log.e(Constans.TAG, "The JSON updater file is mal-formatted.");
+            }
         }
 
 

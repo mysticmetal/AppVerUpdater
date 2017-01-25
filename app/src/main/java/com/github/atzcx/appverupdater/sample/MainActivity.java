@@ -28,11 +28,13 @@ import android.widget.Toast;
 import com.github.atzcx.appverupdater.AppVerUpdater;
 import com.github.atzcx.appverupdater.Callback;
 import com.github.atzcx.appverupdater.enums.UpdateErrors;
-import com.github.atzcx.appverupdater.models.Update;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.material_design_iconic_typeface_library.MaterialDesignIconic;
 
 public class MainActivity extends AppCompatActivity {
+
+
+    private AppVerUpdater appVerUpdater;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,32 +66,29 @@ public class MainActivity extends AppCompatActivity {
 
     private void update(){
 
-        new AppVerUpdater(MainActivity.this)
-                .setUpdateJSONUrl("http://example.net/example.json")
+        appVerUpdater = new AppVerUpdater(MainActivity.this)
+                .setUpdateJSONUrl("")
                 .setShowNotUpdated(true)
                 .setViewNotes(false)
                 .setCallback(new Callback() {
                     @Override
                     public void onFailure(UpdateErrors error) {
 
-                        if (error == UpdateErrors.NETWORK_NOT_AVAILABLE){
-                            Toast.makeText(MainActivity.this, "No Internet Connection", Toast.LENGTH_LONG).show();
-                        } else if (error == UpdateErrors.NETWORK_DISCONNECTED){
-                            Toast.makeText(MainActivity.this, "Internet Disconnected", Toast.LENGTH_LONG).show();
-                        } else if(error == UpdateErrors.SOCET_TIMEOUT_EXCEPTION){
-                            Toast.makeText(MainActivity.this, "Socet timeout exception, Please try again.", Toast.LENGTH_LONG).show();
+                        if (error == UpdateErrors.NETWORK_NOT_AVAILABLE) {
+                            Toast.makeText(MainActivity.this, "No internet connection.", Toast.LENGTH_LONG).show();
                         }
-
-                        Toast.makeText(MainActivity.this, "Exception: " + error, Toast.LENGTH_LONG).show();
-
-//                       UpdateErrors.NETWORK_NOT_AVAILABLE
-//                       UpdateErrors.NETWORK_DISCONNECTED
-//                       UpdateErrors.SOCET_TIMEOUT_EXCEPTION
-//                       UpdateErrors.UNKNOWN_HOST_EXCEPTION
-//                       UpdateErrors.SOCET_EXCEPTION
-//                       UpdateErrors.STRING_URL_IS_EMPTY
-//                       UpdateErrors.JSON_FILE_IS_MISSING
-//                       UpdateErrors.FILE_JSON_NO_DATA
+                        else if (error == UpdateErrors.ERROR_CHECKING_UPDATES) {
+                            Toast.makeText(MainActivity.this, "An error occurred while checking for updates.", Toast.LENGTH_LONG).show();
+                        }
+                        else if (error == UpdateErrors.ERROR_DOWNLOADING_UPDATES) {
+                            Toast.makeText(MainActivity.this, "An error occurred when downloading updates.", Toast.LENGTH_LONG).show();
+                        }
+                        else if (error == UpdateErrors.JSON_FILE_IS_MISSING) {
+                            Toast.makeText(MainActivity.this, "Json file is missing.", Toast.LENGTH_LONG).show();
+                        }
+                        else if (error == UpdateErrors.FILE_JSON_NO_DATA) {
+                            Toast.makeText(MainActivity.this, "The file containing information about the updates are empty.", Toast.LENGTH_LONG).show();
+                        }
 
                     }
                 })
@@ -98,4 +97,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        appVerUpdater.onResume(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        appVerUpdater.onStop(this);
+    }
 }

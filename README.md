@@ -29,14 +29,14 @@ Maven:
 <dependency>
 	<groupId>com.github.atzcx</groupId>
 	<artifactId>AppVerUpdater</artifactId>
-	<version>1.0.6</version>
+	<version>1.0.7</version>
 </dependency>
 ```
 
 
 or Gradle:
 ```JavaScript
-compile 'com.github.atzcx:AppVerUpdater:1.0.6'
+compile 'com.github.atzcx:AppVerUpdater:1.0.7'
 ```
 
 Usage
@@ -54,31 +54,34 @@ Basic Usage
 Activity and Fragment
 
 ```Java
-new AppVerUpdater(this)
+AppVerUpdater appVerUpdater = null;
+```
+
+```Java
+appVerUpdater = new AppVerUpdater(this)
 	.setUpdateJSONUrl("http://example.com/update.json")
 	.setShowNotUpdated(true)
 	.setViewNotes(true)
 	.build();
 ```
-Callback
+To track the status of your network, add this code *
 
 ```Java
-new AppVerUpdater(MainActivity.this)
-	.setUpdateJSONUrl("http://example.com/updateinfo.json")
-	.setShowNotUpdated(true)
-	.setViewNotes(false)
-	.setCallback(new Callback() {
-	     @Override
-	     public void onFailure(AppVerUpdaterError error) {
-		  if (error == AppVerUpdaterError.NETWORK_NOT_AVAILABLE){
-			Toast.makeText(MainActivity.this, "No Internet Connection", Toast.LENGTH_LONG).show();
-		  } else if (error == AppVerUpdaterError.NETWORK_DISKONNECTED){
-			Toast.makeText(MainActivity.this, "Internet Disconnected", Toast.LENGTH_LONG).show();
-		  }
-	    }
-	})
-	.build();
+@Override
+protected void onResume() {
+	super.onResume();
+    appVerUpdater.onResume(this);
+}
+
+@Override
+protected void onStop() {
+	super.onStop();
+    appVerUpdater.onStop(this);
+}
 ```
+
+[Example usage](https://github.com/atzcx/AppVerUpdater/blob/master/app/src/main/java/com/github/atzcx/appverupdater/sample/MainActivity.java)
+
 
 Example JSON
 ------------------

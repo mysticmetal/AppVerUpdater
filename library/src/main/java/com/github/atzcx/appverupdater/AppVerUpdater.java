@@ -19,12 +19,16 @@ package com.github.atzcx.appverupdater;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.github.atzcx.appverupdater.enums.UpdateErrors;
 import com.github.atzcx.appverupdater.interfaces.DialogListener;
@@ -43,8 +47,8 @@ public class AppVerUpdater {
 
     private Context context;
     private String url;
-    private AsyncClient.StringRequest stringRequest;
-    private AsyncClient.DownloadRequest downloadRequest;
+    private AsyncClient.AsyncStringRequest stringRequest;
+    private AsyncClient.AsyncDownloadRequest downloadRequest;
 
     private CharSequence title_available;
     private CharSequence content_available;
@@ -59,7 +63,7 @@ public class AppVerUpdater {
     private boolean viewNotes = false;
     private boolean showNotUpdate = false;
 
-    private Callback listener;
+    private Callback callback;
 
     private AlertDialog alertDialog;
 
@@ -75,6 +79,7 @@ public class AppVerUpdater {
         this.content_not_available = this.context.getResources().getString(R.string.appverupdater_content_not_update_available);
         this.message = this.context.getResources().getString(R.string.appverupdater_progressdialog_message_update_available);
         this.denied_message = context.getResources().getString(R.string.appverupdater_denied_message);
+
     }
 
     public AppVerUpdater setUpdateJSONUrl(@NonNull String url) {
@@ -173,7 +178,7 @@ public class AppVerUpdater {
     }
 
     public AppVerUpdater setCallback(Callback listener){
-        this.listener = listener;
+        this.callback = listener;
         return this;
     }
 
@@ -192,6 +197,38 @@ public class AppVerUpdater {
         return this;
     }
 
+    public void onResume(Context context){
+        if (networkReceiver == null){
+            context.registerReceiver(networkReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
+        }
+    }
+
+
+    public void onStop(Context context){
+        if (networkReceiver != null){
+            try {
+                context.unregisterReceiver(networkReceiver);
+                networkReceiver = null;
+            } catch (IllegalArgumentException e){
+                if (BuildConfig.DEBUG){
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private BroadcastReceiver networkReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (!UpdaterUtils.isNetworkAvailable(context)){
+                if (downloadRequest != null && downloadRequest.get() != null && !downloadRequest.get().isCancelled()){
+                    downloadRequest.get().cancel();
+                    //failureCallback(UpdateErrors.NETWORK_DISCONNECTED);
+                }
+            }
+        }
+    };
+
     private PermissionListener permissionListener = new PermissionListener() {
         @Override
         public void onPermissionGranted() {
@@ -200,42 +237,49 @@ public class AppVerUpdater {
 
         @Override
         public void onPermissionDenied(ArrayList<String> deniedPermissions) {
-            for (String s : deniedPermissions) {
-                Log.v(Constans.TAG, "Permission Denied: " + s);
-            }
         }
     };
 
+
     private void update() {
-        stringRequest = new AsyncClient.StringRequest(context, url, new RequestListener() {
+        stringRequest = new AsyncClient.AsyncStringRequest(context, url, new RequestListener() {
             @Override
             public void onSuccess(final Update update) {
-                if (UpdaterUtils.isUpdateAvailable(UpdaterUtils.appVersion(context), update.getVersion())) {
+                ((Activity) context).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
 
-                    Log.v(Constans.TAG, "Update ok:");
+                        if (UpdaterUtils.isUpdateAvailable(UpdaterUtils.appVersion(context), update.getVersion())) {
 
-                    alertDialog = DialogUtils.showUpdateAvailableDialog(context, title_available,
-                            formatContent(context, update), negativeText_available,
-                            positiveText_available, message, update.getUrl(), new DialogListener() {
-                                @Override
-                                public void onDone() {
-                                    downloadUpdates(context, update.getUrl(), message);
-                                }
-                            });
+                            if (BuildConfig.DEBUG){
+                                Log.v(Constans.TAG, "Update...");
+                            }
 
-                    alertDialog.show();
+                            alertDialog = DialogUtils.showUpdateAvailableDialog(context, title_available,
+                                    formatContent(context, update), negativeText_available,
+                                    positiveText_available, message, update.getUrl(), new DialogListener() {
+                                        @Override
+                                        public void onDone() {
+                                            downloadUpdates(context, update.getUrl(), message);
+                                        }
+                                    });
 
-                } else if (showNotUpdate) {
+                            alertDialog.show();
 
-                    alertDialog = DialogUtils.showUpdateNotAvailableDialog(context, title_not_available, content_not_available);
-                    alertDialog.show();
+                        } else if (showNotUpdate) {
 
-                }
+                            alertDialog = DialogUtils.showUpdateNotAvailableDialog(context, title_not_available, content_not_available);
+                            alertDialog.show();
+
+                        }
+
+                    }
+                });
             }
 
             @Override
             public void onFailure(UpdateErrors error) {
-                if (listener != null){
+                if (callback != null){
                     failureCallback(error);
                 }
             }
@@ -244,13 +288,10 @@ public class AppVerUpdater {
         stringRequest.execute();
     }
 
-    public void stop() {
-        if (stringRequest != null && !stringRequest.isCancelled()) {
-            stringRequest.cancel(true);
-        }
-
-        if (downloadRequest != null && !downloadRequest.isCancelled()) {
-            downloadRequest.cancel(true);
+    @Deprecated
+    public void stop(){
+        if (downloadRequest != null && downloadRequest.get() != null && !downloadRequest.get().isCancelled()){
+            downloadRequest.get().cancel();
         }
     }
 
@@ -274,18 +315,19 @@ public class AppVerUpdater {
     }
 
     private void downloadUpdates(final Context context, String url, CharSequence message){
-        downloadRequest = new AsyncClient.DownloadRequest(context, url, message, "update-" + UpdaterUtils.currentDate() + ".apk", new DownloadListener() {
+        downloadRequest = new AsyncClient.AsyncDownloadRequest(context, url, message, "update-" + UpdaterUtils.currentDate() + ".apk", new DownloadListener() {
             @Override
-            public void onSuccess(File file) {
+            public void onSuccess(final File file) {
                 if (file != null){
                     UpdaterUtils.installApkAsFile(context, file);
                 }
+
             }
 
             @Override
             public void onFailure(UpdateErrors error) {
-                if (error == UpdateErrors.NETWORK_DISCONNECTED){
-                    failureCallback(UpdateErrors.NETWORK_DISCONNECTED);
+                if (callback != null){
+                    failureCallback(error);
                 }
             }
         });
@@ -297,7 +339,7 @@ public class AppVerUpdater {
         ((Activity) context).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                listener.onFailure(error);
+                callback.onFailure(error);
             }
         });
     }
